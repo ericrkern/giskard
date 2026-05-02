@@ -35,7 +35,7 @@ flowchart LR
     Router -->|gateway + DNS logs| MacMini
     MacMini -->|policy actions| Router
     MacMini -->|containment actions| Devices
-    MacMini <--> |alerts + approvals| iPhone
+    MacMini <--> |alerts + action results| iPhone
 ```
 
 ---
@@ -95,7 +95,7 @@ flowchart TB
 
 With 256 GB memory, use explicit resource pools so AI workloads cannot starve real-time defense loops.
 
-## 4.1 Memory Budget (Initial)
+### 4.1 Memory Budget (Initial)
 - **OS + base services:** 24 GB
 - **Ingest/collectors + stream processing:** 24 GB
 - **OpenClaw domain agents:** 40 GB
@@ -106,7 +106,7 @@ With 256 GB memory, use explicit resource pools so AI workloads cannot starve re
 
 Total: **256 GB**
 
-## 4.2 CPU/GPU Strategy (Apple Silicon)
+### 4.2 CPU/GPU Strategy (Apple Silicon)
 - Pin ingestion, policy, and verification workers to high-priority CPU scheduling classes.
 - Run LLM inference with bounded concurrency to protect deterministic control paths.
 - Use separate worker pools:
@@ -114,7 +114,7 @@ Total: **256 GB**
   - **Reasoning pool** (LLM-assisted analysis/summarization)
   - **Batch pool** (reporting, model tuning, archival tasks)
 
-## 4.3 Storage Layout (Suggested)
+### 4.3 Storage Layout (Suggested)
 - Internal NVMe:
   - system + binaries
   - hot event index
@@ -128,7 +128,7 @@ Total: **256 GB**
 
 ## 5. Network Placement and Interfaces
 
-## 5.1 Position in Subnet
+### 5.1 Position in Subnet
 - Mac mini resides on trusted management segment/VLAN.
 - It ingests telemetry from:
   - router/firewall
@@ -139,7 +139,7 @@ Total: **256 GB**
   - DNS blocklist/sinkhole controls
   - segmentation/quarantine controls
 
-## 5.2 Connectivity Recommendations
+### 5.2 Connectivity Recommendations
 - Prefer wired Ethernet for the Mac mini.
 - Use static DHCP reservation or static IP.
 - Restrict inbound access to admin and service ports only.
@@ -166,13 +166,13 @@ Run components in isolated units (containers/process supervisors) with least pri
 Rules:
 - Tier 3 can never block Tier 1.
 - LLM services cannot directly execute system/network actions.
-- Only policy-approved command runners perform enforcement.
+- Only policy-authorized command runners perform enforcement.
 
 ---
 
 ## 7. Reliability and Resilience
 
-## 7.1 Runtime Resilience
+### 7.1 Runtime Resilience
 - Supervisor restarts failed agent workers.
 - Health checks for every agent and connector.
 - Backpressure queues for burst events.
@@ -180,7 +180,7 @@ Rules:
   - if LLM unavailable -> rule/policy-only mode
   - if external services unavailable -> local autonomous mode
 
-## 7.2 Backup and Recovery
+### 7.2 Backup and Recovery
 - Scheduled config and policy backups.
 - Evidence/audit snapshots with integrity checks.
 - Recovery runbook for node replacement and state restore.

@@ -6,9 +6,10 @@ This document defines the **agent swarm** used in OpenClaw to implement Giskard'
 
 Design intent:
 - each agent has a narrow, well-defined mission
-- agents monitor different parts of the environment in parallel
+- agents monitor different parts of the environment continuously in parallel
 - all findings and proposed actions flow to **Giskard Orchestrator**
 - only Giskard communicates with the end user (iPhone app)
+- defensive actions execute automatically under policy direction from the Giskard control agent
 
 ---
 
@@ -31,7 +32,7 @@ All agents are independent workers with explicit contracts:
 
 ## 3. Core Agents
 
-## 3.1 Network Sentinel Agent
+### 3.1 Network Sentinel Agent
 **Purpose:** Monitor gateway and subnet traffic for external and lateral threats.
 
 **Monitors**
@@ -47,7 +48,7 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 3.2 Endpoint Guard Agent
+### 3.2 Endpoint Guard Agent
 **Purpose:** Defend laptops/desktops/servers on the subnet.
 
 **Monitors**
@@ -63,7 +64,7 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 3.3 Mobile Shield Agent
+### 3.3 Mobile Shield Agent
 **Purpose:** Protect phones and tablets connected to home/personal networks.
 
 **Monitors**
@@ -79,7 +80,7 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 3.4 IoT Watcher Agent
+### 3.4 IoT Watcher Agent
 **Purpose:** Monitor unmanaged/smart-home devices with constrained visibility.
 
 **Monitors**
@@ -95,7 +96,7 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 3.5 Identity Defender Agent
+### 3.5 Identity Defender Agent
 **Purpose:** Detect account/session abuse across users and devices.
 
 **Monitors**
@@ -111,7 +112,7 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 3.6 Deception Agent
+### 3.6 Deception Agent
 **Purpose:** Use decoys/honeytokens to detect attacker interaction early.
 
 **Monitors**
@@ -128,7 +129,7 @@ All agents are independent workers with explicit contracts:
 
 ## 4. Orchestration and Decision Agents
 
-## 4.1 Correlation Agent
+### 4.1 Correlation Agent
 **Purpose:** Merge findings from all domain agents into incident graphs.
 
 **Responsibilities**
@@ -141,7 +142,7 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 4.2 Risk Scoring Agent
+### 4.2 Risk Scoring Agent
 **Purpose:** Assign a normalized risk score for each incident.
 
 **Inputs**
@@ -156,21 +157,21 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 4.3 Policy Agent
+### 4.3 Policy Agent
 **Purpose:** Determine what actions are allowed and appropriate.
 
 **Responsibilities**
 - enforce guardrails (least-risk, least-privilege)
-- validate human approval requirements
+- authorize automatic response execution by policy
 - block forbidden commands/actions
 
 **Output**
-- approved action plan with constraints
+- executable action plan with constraints
 
 ---
 
-## 4.4 Response Coordinator Agent
-**Purpose:** Execute approved actions through controlled workflows.
+### 4.4 Response Coordinator Agent
+**Purpose:** Execute policy-authorized actions through controlled workflows.
 
 **Execution model**
 - Observe -> Evaluate -> Simulate -> Execute -> Verify -> Record
@@ -184,7 +185,7 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 4.5 Verification Agent
+### 4.5 Verification Agent
 **Purpose:** Confirm actions had expected defensive effect.
 
 **Checks**
@@ -199,7 +200,7 @@ All agents are independent workers with explicit contracts:
 
 ## 5. Evidence, Reporting, and Learning Agents
 
-## 5.1 Forensics Agent
+### 5.1 Forensics Agent
 **Purpose:** Preserve evidence and maintain chain of custody.
 
 **Captures**
@@ -209,7 +210,7 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 5.2 Reporting Agent
+### 5.2 Reporting Agent
 **Purpose:** Produce clear operator-facing incident narratives.
 
 **Produces**
@@ -219,7 +220,7 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 5.3 Feedback and Tuning Agent
+### 5.3 Feedback and Tuning Agent
 **Purpose:** Improve performance over time.
 
 **Responsibilities**
@@ -235,12 +236,12 @@ This is the **only agent that talks to the end user**.
 
 **Channels**
 - iPhone app alerts and status updates
-- action approval prompts
+- executed-action summaries and verification results
 - verification and audit summaries
 
 **Rules**
 - domain agents never communicate directly to user
-- user actions route back through Giskard for policy validation
+- user-visible data is informational by default, not an operational approval gate
 - all user-visible messages are normalized and explainable
 
 ---

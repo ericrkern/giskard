@@ -1,14 +1,14 @@
-# ADA iOS App Specification
+# Giskard iOS App Specification
 
 ## 1. Purpose
 
-`ADA Mobile` is the iOS companion app for Giskard's Active Defense Agent platform.  
+`Giskard Mobile` is the iOS companion app for the Giskard autonomous defense platform.  
 It provides secure mobile visibility into incidents and enables policy-bounded response actions for authorized operators.
 
 Primary outcomes:
 - receive real-time incident alerts
 - understand risk quickly
-- execute approved response actions safely
+- review automatic response actions and outcomes safely
 - verify outcomes with full audit history
 
 ---
@@ -19,7 +19,7 @@ Primary outcomes:
 - Secure authentication (OIDC + MFA)
 - Incident feed with severity/status filters
 - Incident detail timeline and evidence summary
-- Action approval + execution flow for policy-approved actions
+- Automatic action visibility + verification status flow
 - Real-time push notifications (APNs)
 - Device inventory view for home subnet assets (computers, phones, tablets, IoT)
 
@@ -53,54 +53,53 @@ All actions are server-authorized and logged.
 ### 4.2 Incident Notification to Action
 1. APNs push arrives (minimal metadata only)
 2. User opens incident detail
-3. App fetches signed incident payload + recommended actions
-4. User confirms action (biometric/PIN gate)
-5. Backend runs policy validation
-6. Response executes if approved
-7. Verification and audit status stream back to app
+3. App fetches signed incident payload + executed/recommended actions
+4. Backend runs policy validation automatically
+5. Response executes under Giskard control agent direction
+6. Verification and audit status stream back to app
 
 ### 4.3 Subnet/Mobile Containment
 1. App displays compromised mobile/tablet/computer in subnet
 2. Responder chooses allowed action (quarantine segment, block domain, revoke token)
 3. App submits signed action request with justification
-4. Backend executes through ADA command pipeline
+4. Backend executes through the Giskard command pipeline
 5. App shows verification outcome and rollback guidance if needed
 
 ---
 
 ## 5. Screen Architecture
 
-## 5.1 Auth Screens
+### 5.1 Auth Screens
 - Splash / bootstrap check
 - Sign-in entry
 - MFA challenge
 - Device trust enrollment
 
-## 5.2 Main App Tabs
+### 5.2 Main App Tabs
 - **Incidents**
 - **Devices**
 - **Actions**
 - **Audit**
 - **Settings**
 
-## 5.3 Incident Feed Screen
+### 5.3 Incident Feed Screen
 - List by severity (Critical/High/Medium/Low)
 - Filters: status, asset type, subnet, ATT&CK tactic
-- Quick indicators: active containment, awaiting approval, verified
+- Quick indicators: active containment, auto-mitigated, verified
 
-## 5.4 Incident Detail Screen
+### 5.4 Incident Detail Screen
 - Header: severity, confidence, affected assets, active state
 - Timeline: detection -> decision -> action -> verification
 - Evidence summary cards (not raw full dumps)
 - Recommended actions with policy rationale
 
-## 5.5 Action Confirmation Screen
+### 5.5 Action Confirmation Screen
 - Action description and expected impact
 - Preconditions and rollback notes
-- Biometric confirmation
-- Submit + live status
+- Optional operator override controls (if emergency policy enables)
+- Live status + verification trail
 
-## 5.6 Devices Screen
+### 5.6 Devices Screen
 - Subnet inventory grouped by type:
   - computers
   - phones
@@ -109,7 +108,7 @@ All actions are server-authorized and logged.
 - Trust posture and risk flags
 - Device-level containment options (policy-scoped)
 
-## 5.7 Audit Screen
+### 5.7 Audit Screen
 - Chronological action log
 - Actor (human or autonomous)
 - Policy decision reason
@@ -214,7 +213,8 @@ Base path: `/mobile`
 
 ### 8.3 Action Authorization
 - All actions validated server-side against policy
-- Step-up auth (biometric + re-auth) for high-impact actions
+- Automatic execution in default mode when policy permits
+- Step-up auth (biometric + re-auth) for exceptional manual override paths
 - Signed requests with nonce + short TTL to prevent replay
 
 ### 8.4 App Integrity
@@ -231,7 +231,7 @@ Base path: `/mobile`
 - Include only:
   - incident ID
   - severity
-  - action-required flag
+  - action-executed flag
 
 ### Notification categories
 - `incident_critical`

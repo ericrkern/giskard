@@ -2,20 +2,35 @@
 
 ![Giskard Home Overview](./giskard-home-overview.png)
 
-![Active Security Agent Architecture](./active-security-agent-architecture.png)
+![Giskard Core Security Architecture](./active-security-agent-architecture.png)
 
-![ADA Agent Runtime Architecture](./agent-architecture.png)
+![Giskard Agent Runtime Architecture](./agent-architecture.png)
 
-![Local Ollama and ADA Interaction Architecture](./ollama-agent-architecture.png)
+![Local Ollama and Giskard Interaction Architecture](./ollama-agent-architecture.png)
 
-# Active Defense Agent (ADA)  
-## Autonomous Security Architecture
+# Giskard  
+## Multi-Agent Autonomous Defense Architecture
+
+---
+
+## Scope and Terminology
+
+- **Giskard**: the full defense platform.
+- **OpenClaw agent swarm**: specialized monitoring and decision agents running in parallel.
+- **Giskard Orchestrator**: the only component that correlates all agent findings and communicates with end users.
+- **Giskard Mobile (iPhone app)**: the only end-user interface for action/result reporting and audit views.
+
+Related documents:
+- `docs/agents.md`
+- `docs/hardware.md`
+- `docs/ios-app-spec.md`
+- `docs/mvp.md`
 
 ---
 
 ## 1. Overview
 
-The **Active Defense Agent (ADA)** is an autonomous, policy-driven security platform designed to:
+**Giskard** is an autonomous, policy-driven security platform designed to:
 
 - Continuously monitor systems connected to the internet  
 - Detect intrusion attempts and anomalous behavior in real time  
@@ -23,9 +38,11 @@ The **Active Defense Agent (ADA)** is an autonomous, policy-driven security plat
 - Preserve forensic evidence  
 - Provide actionable reporting and insights  
 
-ADA operates at both the **host level (local agent)** and the **central control plane**, enabling fast local response with global intelligence.
+Giskard operates as a **multi-agent swarm** with a local orchestrator in the protected subnet, enabling fast local response with shared intelligence across specialized agents.
 
-ADA is designed to behave like a **24/7 virtual terminal security operator**: continuously watching live system activity, investigating suspicious patterns as they emerge, and applying defensive changes immediately when policy conditions are met.
+Giskard is designed to behave like a **24/7 virtual terminal security operator**: continuously watching live system activity, investigating suspicious patterns as they emerge, and applying defensive changes immediately when policy conditions are met.
+
+By default, defensive actions are **automatic** under policy guardrails and executed by the Giskard control agent. The iPhone app reports resulting actions and outcomes rather than serving as a manual approval gate for normal operations.
 
 ---
 
@@ -55,18 +72,18 @@ ADA is designed to behave like a **24/7 virtual terminal security operator**: co
 
 ## 3. High-Level Architecture
 
-The system is composed of three major domains:
+The system is composed of major domains:
 
 ### 3.1 External Threat Surface
 - Internet attackers (exploits, brute force, malware, DDoS)
 - Insider threats and stolen credentials
 - Third-party integrations and cloud services
 
-### 3.2 Protected Host (Active Defense Agent)
-- Sensor Layer
-- Local Processing (Detection + Risk + Policy)
-- Local Enforcement
-- Evidence Collection
+### 3.2 Protected Subnet Agent Swarm (OpenClaw Runtime)
+- Domain monitoring agents (network, endpoint, mobile, IoT, identity, deception)
+- Local processing (detection + risk + policy proposals)
+- Coordinated enforcement through guarded command pipelines
+- Evidence and audit event production
 
 ### 3.3 Protected Subnet (Home / Small Office LAN)
 - Gateway and DNS visibility (router, firewall, resolver logs)
@@ -74,12 +91,18 @@ The system is composed of three major domains:
 - Device profiling for IoT, endpoints, phones/tablets, and unmanaged hosts
 - Segment-aware response across trusted and untrusted zones
 
-### 3.4 Central Platform (Control Plane)
+### 3.4 Giskard Orchestrator (Local Control Plane)
 - Event ingestion and streaming
 - Correlation and analytics
 - Global policy engine
 - Response orchestration
 - Reporting and case management
+
+### 3.5 User Interface Plane (iPhone App Only)
+- Incident alerts and summaries
+- Approval flow for sensitive actions
+- Verification and audit visibility
+- No direct end-user communication from domain agents
 
 ---
 
@@ -237,24 +260,24 @@ Features:
 
 ### 4.7 Autonomous Terminal Operator Mode
 
-ADA's runtime behavior models an experienced SOC engineer at a shell:
+Giskard's orchestrator runtime models an experienced SOC engineer at a shell:
 
 - Continuously tails and inspects critical telemetry streams
 - Opens short-lived investigations for suspicious chains of events
-- Executes pre-approved defensive commands through policy guardrails
+- Executes policy-authorized defensive commands through guardrails
 - Verifies command outcomes and rolls forward to stronger controls if needed
 - Produces an auditable command/action timeline for every mitigation step
 
 ---
 
-### 4.8 iOS App Architecture (ADA Mobile)
+### 4.8 iOS App Architecture (Giskard Mobile)
 
-The iOS app extends ADA into a secure mobile control and response surface.
+The iOS app extends Giskard into a secure mobile control and response surface.
 
 #### App Modules
 - **Auth & Session Module**: Sign in with OIDC/IdP, MFA, token refresh, device binding
 - **Incident Feed Module**: Real-time alerts, risk levels, ATT&CK context, host/subnet impact
-- **Response Actions Module**: Policy-approved actions (isolate device, block domain, revoke session)
+- **Response Actions Module**: Policy-authorized automatic actions (isolate device, block domain, revoke session)
 - **Device Posture Module**: App integrity, jailbreak detection signals, local security checks
 - **Evidence Viewer Module**: Incident timeline, command history, verification outcomes
 - **Settings & Policy View Module**: Notification preferences, subnet memberships, trust status
@@ -274,31 +297,27 @@ The iOS app extends ADA into a secure mobile control and response surface.
 - WebSocket or SSE channel for live updates and response confirmations
 
 #### Notification and Action Flow
-1. ADA detects threat and creates incident
-2. Control plane sends APNs push with minimal metadata
-3. User opens app and fetches signed incident details
-4. User approves or reviews policy-recommended response
-5. Backend validates policy + user authorization before execution
-6. App receives verification result and audit trail update
+1. A domain agent detects threat activity and publishes findings
+2. Giskard correlates, scores risk, and creates an incident
+3. Control plane sends APNs push with minimal metadata
+4. Backend validates policy and executes automatic response actions
+5. User opens app and fetches signed incident details
+6. App receives executed-action results and audit trail updates
 
 ---
 
 ## 5. Data Flow
 
-1. Sensors collect events locally  
-2. Terminal watch loop continuously prioritizes live signals  
-3. Events are normalized and enriched  
-4. Detection engine evaluates threat signals  
-5. Risk engine assigns severity  
-6. Policy engine determines action  
-7. Response orchestrator executes enforcement and hardening changes  
-8. Enforcement results are verified against expected outcomes  
-9. Evidence is captured and stored  
-10. If subnet mode is enabled, gateway and DNS controls are updated  
-11. Events are sent to central platform  
-12. Correlation and reporting occur  
-13. Feedback loop improves detection and response playbooks  
-14. Mobile clients receive incident updates and verified response outcomes  
+1. Domain agents collect events across host, network, mobile, and IoT surfaces  
+2. Domain agents normalize findings and submit them to Giskard Orchestrator  
+3. Correlation and risk scoring produce a unified incident view  
+4. Policy engine determines allowed action paths  
+5. Response coordinator dispatches policy-authorized enforcement actions  
+6. Enforcement results are verified against expected outcomes  
+7. Evidence and audit timelines are captured and stored  
+8. Gateway/DNS/subnet controls are updated as needed  
+9. Mobile clients receive incident updates and verified response outcomes  
+10. Feedback loop improves rules, models, and policy playbooks  
 
 ---
 
@@ -466,23 +485,20 @@ Deployment pattern:
 - Cross-cloud attack correlation  
 - AI-driven incident summarization  
 - Predictive threat modeling  
-- iOS action approval workflows for delegated responders
+- iOS delegated responder workflows for observing automatic actions
 - On-device risk briefing generation for incident context
 
 ---
 
 ## 13. Summary
 
-The Active Defense Agent is a **modern autonomous security system** that combines:
+Giskard is a **modern multi-agent autonomous security system** that combines:
 
-- Host-level visibility  
-- Subnet-level visibility and control for home networks  
-- Coverage for phones, tablets, and computers on the same protected subnet  
-- Continuous terminal-operator behavior  
-- Real-time detection  
-- Policy-driven decision making  
-- Automated response  
-- Centralized intelligence  
+- specialized domain agents operating in parallel  
+- local orchestration with policy-bounded decisioning  
+- automatic response execution directed by the Giskard control agent  
+- subnet-level visibility and control for home environments  
+- secure iPhone-based reporting through one trusted interface  
 
 It delivers **fast containment, reduced dwell time, and complete visibility**, enabling organizations to move from reactive security to **proactive, autonomous defense** with the consistency of an always-on defensive terminal operator.
 
