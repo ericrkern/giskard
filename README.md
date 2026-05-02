@@ -11,3 +11,23 @@ The name reflects the system's core philosophy:
 - proactive protection of people and critical systems
 
 Like its namesake, Giskard is built to detect risk early, act with precision, and prioritize safety.
+
+---
+
+## Network pulse (network-scan-agent)
+
+The [network-scan-agent](https://github.com/ericrkern/network-scan-agent) repo (“network pulse”) is included as a **Git submodule** at `external/network-scan-agent`. It remains its own GitHub project; this repo only records **which commit** of that repo you depend on.
+
+Clone Giskard with submodules:
+
+```bash
+git clone --recurse-submodules https://github.com/ericrkern/giskard.git
+```
+
+If you already cloned without submodules:
+
+```bash
+git submodule update --init --recursive
+```
+
+To move the submodule to a newer commit on `network-scan-agent`, check out the desired revision inside `external/network-scan-agent`, then commit the submodule pointer update in Giskard.

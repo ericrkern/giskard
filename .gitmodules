@@ -1,0 +1,3 @@
+[submodule "external/network-scan-agent"]
+	path = external/network-scan-agent
+	url = https://github.com/ericrkern/network-scan-agent.git
