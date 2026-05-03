@@ -19,10 +19,8 @@ The [network-scan-agent](https://github.com/ericrkern/network-scan-agent) repo (
 Clone this repository with submodules:
 
 ```bash
-git clone --recurse-submodules https://github.com/ericrkern/giskard.git
+git clone --recurse-submodules https://github.com/ericrkern/zerothguard.git
 ```
-
-_Update the URL if you rename the GitHub repository (for example to `zeroth-guard`)._
 
 If you already cloned without submodules:
 
