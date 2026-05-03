@@ -1,0 +1,194 @@
+# Zeroth Guard OpenClaw swarm manifest — logical agents, missions, tools & skills
+# Bind these to openclaw.json agents.list[] in deployment (IDs are suggestions).
+
+schema_version: 1
+references:
+  taxonomy: docs/agents.md
+  architecture: docs/architecture.md
+  tools_registry: tools/openclaw/zeroth-guard-openclaw-tools.yaml
+  skills_index: skills/README.md
+
+shared_contract_fields:
+  - incident_id
+  - asset_id
+  - subnet_id
+  - trace_id
+  - confidence
+  - risk_level
+  - recommended_actions
+  - evidence_refs
+
+agents:
+
+  # --- Domain monitors ---
+  - id: network-sentinel
+    display_name: Network Sentinel Agent
+    tier: domain_monitor
+    mission: >
+      Watch gateway/firewall/DNS/east-west signals for external and lateral threats;
+      emit flow anomalies and block/quarantine recommendations.
+    invokes_tools:
+      priority: [read, web_fetch, web_search, exec, cron, nodes, sessions_send]
+    exec_notes: >
+      Prefer guarded wrappers (e.g. tools/network_pulse/wrapper.py --mode pulse) over ad-hoc scanning;
+      sanitize intel queries.
+    invokes_skills:
+      optional: [skills/exa-search, skills/composio]
+      registry_search_providers: [searxng-search, ollama-search, tavily]
+    handoff_to: correlation
+
+  - id: endpoint-guard
+    display_name: Endpoint Guard Agent
+    tier: domain_monitor
+    mission: >
+      Monitor hosts for process abuse, privilege spikes, filesystem/auth anomalies;
+      recommend kill/isolate/revoke under policy.
+    invokes_tools:
+      priority: [read, exec, code_execution, apply_patch, sessions_spawn]
+    invokes_skills:
+      optional: [skills/composio]
+    handoff_to: correlation
+
+  - id: mobile-shield
+    display_name: Mobile Shield Agent
+    tier: domain_monitor
+    mission: >
+      Correlate mobile posture (when available) with DNS/outbound patterns on Wi‑Fi;
+      recommend segment moves and risky-domain blocks.
+    invokes_tools:
+      priority: [read, web_search, web_fetch, exec]
+    invokes_skills:
+      optional: [skills/composio]
+    handoff_to: correlation
+
+  - id: iot-watcher
+    display_name: IoT Watcher Agent
+    tier: domain_monitor
+    mission: >
+      Track fingerprint drift, scanning behavior, unexpected protocols on constrained devices;
+      coordinate with Network Pulse inventory snapshots.
+    invokes_tools:
+      priority: [read, exec, nodes, cron]
+    exec_notes: Schedule or trigger Network Pulse wrapper for inventory deltas.
+    invokes_skills:
+      recommended: [skills/home-assistant]
+      optional: [skills/composio]
+    handoff_to: correlation
+
+  - id: identity-defender
+    display_name: Identity Defender Agent
+    tier: domain_monitor
+    mission: >
+      Detect stuffing/brute escalation, session anomalies, privilege misuse across identities.
+    invokes_tools:
+      priority: [read, exec, web_fetch]
+    invokes_skills:
+      optional: [skills/composio]
+    handoff_to: correlation
+
+  - id: deception
+    display_name: Deception Agent
+    tier: domain_monitor
+    mission: >
+      Monitor honeytokens/decoys; produce high-confidence intrusion chains when trips occur.
+    invokes_tools:
+      priority: [read, exec, sessions_send]
+    handoff_to: correlation
+
+  # --- Orchestration & control ---
+  - id: correlation
+    display_name: Correlation Agent
+    tier: control_plane
+    mission: Merge domain findings into unified incidents with ATT&CK context.
+    invokes_tools:
+      priority: [read, write, subagents, sessions_yield, llm-task]
+    invokes_skills:
+      optional: [skills/protocol-reverse-engineering]
+    handoff_to: risk-scoring
+
+  - id: risk-scoring
+    display_name: Risk Scoring Agent
+    tier: control_plane
+    mission: Normalize asset criticality, blast radius, confidence into discrete risk levels.
+    invokes_tools:
+      priority: [read, llm-task, sessions_send]
+    handoff_to: policy
+
+  - id: policy
+    display_name: Policy Agent
+    tier: control_plane
+    mission: Apply deterministic guardrails; authorize Alert/Ask/Act paths per architecture.
+    invokes_tools:
+      priority: [read, lobster, apply_patch]
+    invokes_skills:
+      optional: [skills/n8n-workflow-automation]
+    handoff_to: response-coordinator
+
+  - id: response-coordinator
+    display_name: Response Coordinator Agent
+    tier: control_plane
+    mission: >
+      Execute Observe→Evaluate→Simulate→Execute→Verify→Record for approved actions only.
+    invokes_tools:
+      priority: [exec, process, read, cron]
+    exec_notes: Command allowlists only; no interactive shells without approval profile.
+    invokes_skills:
+      optional: [skills/n8n-workflow-automation, skills/composio]
+    handoff_to: verification
+
+  - id: verification
+    display_name: Verification Agent
+    tier: control_plane
+    mission: Confirm defensive effect; flag partial/failed mitigations for escalation.
+    invokes_tools:
+      priority: [read, exec, web_fetch, code_execution]
+    handoff_to: [reporting, zerothguard-interface]
+
+  # --- Evidence & learning ---
+  - id: forensics
+    display_name: Forensics Agent
+    tier: evidence
+    mission: Preserve chain of custody for timelines, PCAP excerpts, snapshots referenced by incidents.
+    invokes_tools:
+      priority: [read, write, pdf]
+    handoff_to: reporting
+
+  - id: reporting
+    display_name: Reporting Agent
+    tier: evidence
+    mission: Produce operator narratives and audit-ready exports (not raw Mobile copy—handoff to Interface agent).
+    invokes_tools:
+      priority: [read, write, llm-task, pdf]
+    invokes_skills:
+      optional: [skills/openai-whisper]
+    handoff_to: zerothguard-interface
+
+  - id: feedback-tuning
+    display_name: Feedback and Tuning Agent
+    tier: evidence
+    mission: Propose threshold/rule tuning from outcomes—never auto-deploy without policy review.
+    invokes_tools:
+      priority: [read, apply_patch, memory_search, memory_get]
+    invokes_skills:
+      recommended: [skills/self-improving-agent]
+    handoff_to: policy
+
+  # --- User-visible gateway (unique customer surface) ---
+  - id: zerothguard-interface
+    display_name: Zeroth Guard Interface Agent
+    tier: interface
+    mission: >
+      Translate verified incidents and actions into Mobile-safe summaries, pushes, and audit views.
+      Only agent authorized for end-user messaging semantics aligned with Zeroth Guard Mobile.
+    invokes_tools:
+      priority: [message, sessions_send, read]
+      cautious: [tts]
+    invokes_skills:
+      optional: [skills/elevenlabs-agents]
+    constraints:
+      - No direct containment execution—consumes outputs from verification/reporting.
+
+# Operator-only profiles (optional separate openclaw.json entries):
+operator_profiles:
+  description: >
+    Human SOC helpers may attach browser, gateway, or broader message tools with approvals—never merge into autonomous defense defaults without explicit separation.

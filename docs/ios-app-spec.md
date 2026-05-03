@@ -1,8 +1,8 @@
-# Giskard iOS App Specification
+# Zeroth Guard iOS App Specification
 
 ## 1. Purpose
 
-`Giskard Mobile` is the iOS companion app for the Giskard autonomous defense platform.  
+`Zeroth Guard Mobile` is the iOS companion app for the Zeroth Guard autonomous defense platform.  
 It provides secure mobile visibility into incidents and enables policy-bounded response actions for authorized operators.
 
 Primary outcomes:
@@ -55,14 +55,14 @@ All actions are server-authorized and logged.
 2. User opens incident detail
 3. App fetches signed incident payload + executed/recommended actions
 4. Backend runs policy validation automatically
-5. Response executes under Giskard control agent direction
+5. Response executes under Zeroth Guard control agent direction
 6. Verification and audit status stream back to app
 
 ### 4.3 Subnet/Mobile Containment
 1. App displays compromised mobile/tablet/computer in subnet
 2. Responder chooses allowed action (quarantine segment, block domain, revoke token)
 3. App submits signed action request with justification
-4. Backend executes through the Giskard command pipeline
+4. Backend executes through the Zeroth Guard command pipeline
 5. App shows verification outcome and rollback guidance if needed
 
 ---

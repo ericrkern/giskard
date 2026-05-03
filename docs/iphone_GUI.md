@@ -1,8 +1,8 @@
-# Giskard Mobile iPhone GUI
+# Zeroth Guard Mobile iPhone GUI
 
 ## 1. Purpose
 
-This document defines the iPhone user interface for `Giskard Mobile`, the only user-facing surface for the Giskard multi-agent defense platform.
+This document defines the iPhone user interface for `Zeroth Guard Mobile`, the only user-facing surface for the Zeroth Guard multi-agent defense platform.
 
 The app is designed to:
 - deliver high-signal incident alerts
@@ -13,7 +13,7 @@ The app is designed to:
 
 ## 2. UX Principles
 
-- **Single trusted interface:** only Giskard communicates to the end user.
+- **Single trusted interface:** only Zeroth Guard communicates to the end user.
 - **Fast comprehension:** critical incident details in under 10 seconds.
 - **Safe actioning:** no one-tap destructive actions; always confirm.
 - **Audit-first:** every user action and autonomous action is visible.
@@ -34,7 +34,7 @@ Core flow:
 1. APNs alert arrives
 2. User opens incident detail
 3. User reviews policy-directed action and impact
-4. Giskard executes defensive actions automatically
+4. Zeroth Guard executes defensive actions automatically
 5. User observes verification status in audit timeline
 
 ---
@@ -43,7 +43,7 @@ Core flow:
 
 ### 4.1 Login and Secure Enrollment
 
-![Giskard iPhone Login Screen](./iphone-ui-login.png)
+![Zeroth Guard iPhone Login Screen](./iphone-ui-login.png)
 
 **What this screen does**
 - Authenticates with OIDC + MFA
@@ -59,7 +59,7 @@ Core flow:
 
 ### 4.2 Incident Feed
 
-![Giskard iPhone Incident Feed Screen](./iphone-ui-incident-feed.png)
+![Zeroth Guard iPhone Incident Feed Screen](./iphone-ui-incident-feed.png)
 
 **What this screen does**
 - Presents prioritized incidents by severity and status
@@ -75,12 +75,12 @@ Core flow:
 
 ### 4.3 Incident Detail
 
-![Giskard iPhone Incident Detail Screen](./iphone-ui-incident-detail.png)
+![Zeroth Guard iPhone Incident Detail Screen](./iphone-ui-incident-detail.png)
 
 **What this screen does**
 - Explains what happened, why it matters, and what to do next
 - Combines timeline, affected assets, and recommended actions
-- Shows what Giskard is doing automatically and why
+- Shows what Zeroth Guard is doing automatically and why
 
 **Key UI elements**
 - Risk and confidence chips
@@ -93,10 +93,10 @@ Core flow:
 
 ### 4.4 Action Execution Status
 
-![Giskard iPhone Action Execution Screen](./iphone-ui-action-approval.png)
+![Zeroth Guard iPhone Action Execution Screen](./iphone-ui-action-approval.png)
 
 **What this screen does**
-- Presents policy-validated actions selected by Giskard
+- Presents policy-validated actions selected by Zeroth Guard
 - Shows execution progress and expected impact
 - Exposes optional emergency override controls only when policy allows
 
@@ -110,7 +110,7 @@ Core flow:
 
 ### 4.5 Audit Timeline and Verification
 
-![Giskard iPhone Audit Timeline Screen](./iphone-ui-audit.png)
+![Zeroth Guard iPhone Audit Timeline Screen](./iphone-ui-audit.png)
 
 **What this screen does**
 - Confirms execution and verification outcomes
@@ -127,10 +127,10 @@ Core flow:
 ## 5. End-to-End Interaction Model
 
 1. Domain agents detect suspicious behavior in the home subnet.
-2. Giskard Orchestrator correlates evidence, scores risk, and creates incident.
+2. Zeroth Guard Orchestrator correlates evidence, scores risk, and creates incident.
 3. iPhone app receives APNs notification with minimal metadata.
 4. User opens incident detail and reviews policy-recommended response.
-5. Giskard executes guarded command pipeline and verifies outcome.
+5. Zeroth Guard executes guarded command pipeline and verifies outcome.
 6. App updates incident state and writes full audit timeline view.
 
 ---

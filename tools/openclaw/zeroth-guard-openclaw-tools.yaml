@@ -1,0 +1,305 @@
+# Zeroth Guard × OpenClaw — tool registry (reference)
+# OpenClaw ships these tools in the gateway or via plugins; nothing here is executed by this YAML file.
+# Docs: https://docs.openclaw.ai/tools
+
+schema_version: 1
+reference: "https://docs.openclaw.ai/tools"
+
+# Built-in tools (ship with OpenClaw without extra plugins)
+builtin_tools:
+  - id: exec
+    aliases: [bash]
+    doc: "https://docs.openclaw.ai/tools/exec"
+    group: "group:runtime"
+    tier: critical
+    notes: "Invoke wrapped scripts (e.g. network_pulse); require exec approvals and tight allowlists."
+
+  - id: process
+    doc: "https://docs.openclaw.ai/tools/exec"
+    group: "group:runtime"
+    tier: critical
+    notes: "Background/long-running companion to exec; same policy as exec."
+
+  - id: code_execution
+    doc: "https://docs.openclaw.ai/tools/code-execution"
+    group: "group:runtime"
+    tier: recommended
+    notes: "Sandboxed analysis of logs/artifacts; prefer over raw exec when available."
+
+  - id: browser
+    doc: "https://docs.openclaw.ai/tools/browser"
+    group: "group:ui"
+    tier: cautious
+    notes: "Router/vendor dashboards; session theft risk—default deny for autonomous defense agents."
+
+  - id: web_search
+    doc: "https://docs.openclaw.ai/tools/web"
+    group: "group:web"
+    tier: recommended
+    notes: "Threat intel and advisories; sanitize queries (no secrets)."
+
+  - id: x_search
+    doc: "https://docs.openclaw.ai/tools/web"
+    group: "group:web"
+    tier: optional
+    notes: "OSINT-style watch; policy on outbound identity."
+
+  - id: web_fetch
+    doc: "https://docs.openclaw.ai/tools/web-fetch"
+    group: "group:web"
+    tier: recommended
+    notes: "Fetch bulletin pages; validate TLS and content handling."
+
+  - id: read
+    group: "group:fs"
+    tier: recommended
+    notes: "Rules, policies, evidence paths in workspace."
+
+  - id: write
+    group: "group:fs"
+    tier: recommended
+    notes: "Controlled edits to detection/policy artifacts with review."
+
+  - id: edit
+    group: "group:fs"
+    tier: recommended
+    notes: "Same discipline as write."
+
+  - id: apply_patch
+    doc: "https://docs.openclaw.ai/tools/apply-patch"
+    group: "group:fs"
+    tier: recommended
+    notes: "Structured multi-file rule/policy updates."
+
+  - id: message
+    doc: "https://docs.openclaw.ai/tools/agent-send"
+    group: "group:messaging"
+    tier: cautious
+    notes: "Operator channels only; does not replace Zeroth Guard Mobile for customers."
+
+  - id: canvas
+    group: "group:ui"
+    tier: low
+    notes: "Optional rich operator visuals."
+
+  - id: nodes
+    doc: "https://docs.openclaw.ai/cli/nodes"
+    group: "group:nodes"
+    tier: recommended
+    notes: "Paired devices / LAN-adjacent discovery signals."
+
+  - id: cron
+    doc: "https://docs.openclaw.ai/automation/cron-jobs"
+    group: "group:automation"
+    tier: recommended
+    notes: "Schedule Network Pulse and periodic correlation tasks."
+
+  - id: gateway
+    doc: "https://docs.openclaw.ai/tools/index"
+    group: "group:automation"
+    tier: operator_only
+    notes: "Owner-only config/update operations; not for untrusted agents."
+
+  - id: image
+    doc: "https://docs.openclaw.ai/tools/media-overview"
+    group: "group:media"
+    tier: optional
+    notes: "Screenshot/phishing triage when needed."
+
+  - id: image_generate
+    doc: "https://docs.openclaw.ai/tools/image-generation"
+    group: "group:media"
+    tier: low
+    notes: "Rare for core defense MVP."
+
+  - id: music_generate
+    doc: "https://docs.openclaw.ai/tools/music-generation"
+    group: "group:media"
+    tier: low
+    notes: "Out of scope for MVP."
+
+  - id: video_generate
+    doc: "https://docs.openclaw.ai/tools/video-generation"
+    group: "group:media"
+    tier: low
+    notes: "Out of scope for MVP."
+
+  - id: tts
+    doc: "https://docs.openclaw.ai/tools/tts"
+    group: "group:media"
+    tier: optional
+    notes: "Operator read-aloud only if desired."
+
+  - id: sessions_list
+    doc: "https://docs.openclaw.ai/tools/subagents"
+    group: "group:sessions"
+    tier: recommended
+    notes: "Multi-agent orchestration."
+
+  - id: sessions_history
+    doc: "https://docs.openclaw.ai/tools/subagents"
+    group: "group:sessions"
+    tier: recommended
+    notes: "Filtered recall for investigations."
+
+  - id: sessions_send
+    doc: "https://docs.openclaw.ai/tools/subagents"
+    group: "group:sessions"
+    tier: recommended
+    notes: "Coordinate specialist lanes."
+
+  - id: sessions_spawn
+    doc: "https://docs.openclaw.ai/tools/subagents"
+    group: "group:sessions"
+    tier: recommended
+    notes: "Spawn sub-agents for parallel tasks."
+
+  - id: sessions_yield
+    doc: "https://docs.openclaw.ai/tools/subagents"
+    group: "group:sessions"
+    tier: recommended
+    notes: "Sub-agent handoff."
+
+  - id: subagents
+    doc: "https://docs.openclaw.ai/tools/subagents"
+    group: "group:sessions"
+    tier: recommended
+    notes: "Core swarm pattern."
+
+  - id: session_status
+    doc: "https://docs.openclaw.ai/concepts/session-tool"
+    group: "group:sessions"
+    tier: recommended
+    notes: "Lightweight session health/model readback."
+
+  - id: agents_list
+    doc: "https://docs.openclaw.ai/cli/agents"
+    group: "group:agents"
+    tier: recommended
+    notes: "Enumerate configured agents."
+
+  - id: memory_search
+    doc: "https://docs.openclaw.ai/concepts/memory-search"
+    group: "group:memory"
+    tier: optional
+    notes: "If memory engine enabled—incident/runbook recall."
+
+  - id: memory_get
+    doc: "https://docs.openclaw.ai/concepts/memory"
+    group: "group:memory"
+    tier: optional
+    notes: "Fetch memory entries; gate sensitive retention."
+
+# Documented extension / plugin tool pages (may require plugins or provider keys)
+extension_tools:
+  - id: brave-search
+    doc: "https://docs.openclaw.ai/tools/brave-search"
+    tier: optional
+
+  - id: duckduckgo-search
+    doc: "https://docs.openclaw.ai/tools/duckduckgo-search"
+    tier: optional
+
+  - id: exa-search
+    doc: "https://docs.openclaw.ai/tools/exa-search"
+    tier: recommended
+    notes: "Technical search grounding when API available."
+
+  - id: gemini-search
+    doc: "https://docs.openclaw.ai/tools/gemini-search"
+    tier: optional
+
+  - id: grok-search
+    doc: "https://docs.openclaw.ai/tools/grok-search"
+    tier: optional
+
+  - id: kimi-search
+    doc: "https://docs.openclaw.ai/tools/kimi-search"
+    tier: optional
+
+  - id: minimax-search
+    doc: "https://docs.openclaw.ai/tools/minimax-search"
+    tier: optional
+
+  - id: ollama-search
+    doc: "https://docs.openclaw.ai/tools/ollama-search"
+    tier: recommended
+    notes: "Local-first web search path when aligned with subnet LLM strategy."
+
+  - id: perplexity-search
+    doc: "https://docs.openclaw.ai/tools/perplexity-search"
+    tier: optional
+
+  - id: searxng-search
+    doc: "https://docs.openclaw.ai/tools/searxng-search"
+    tier: recommended
+    notes: "Self-hosted meta-search option."
+
+  - id: tavily
+    doc: "https://docs.openclaw.ai/tools/tavily"
+    tier: optional
+
+  - id: firecrawl
+    doc: "https://docs.openclaw.ai/tools/firecrawl"
+    tier: optional
+
+  - id: llm-task
+    doc: "https://docs.openclaw.ai/tools/llm-task"
+    tier: recommended
+    notes: "Structured JSON extraction for incidents/playbooks."
+
+  - id: lobster
+    doc: "https://docs.openclaw.ai/tools/lobster"
+    tier: recommended
+    notes: "Resumable approval workflows for risky steps."
+
+  - id: diffs
+    doc: "https://docs.openclaw.ai/tools/diffs"
+    tier: optional
+
+  - id: pdf
+    doc: "https://docs.openclaw.ai/tools/pdf"
+    tier: recommended
+    notes: "Vendor/security PDF ingestion."
+
+  - id: tokenjuice
+    doc: "https://docs.openclaw.ai/tools/tokenjuice"
+    tier: optional
+
+  - id: elevated
+    doc: "https://docs.openclaw.ai/tools/elevated"
+    tier: cautious
+    notes: "Elevated execution surface—treat like exec approvals."
+
+  - id: multi-agent-sandbox-tools
+    doc: "https://docs.openclaw.ai/tools/multi-agent-sandbox-tools"
+    tier: recommended
+    notes: "Sandbox policy alignment for risky tool bundles."
+
+  - id: loop-detection
+    doc: "https://docs.openclaw.ai/tools/loop-detection"
+    tier: optional
+
+  - id: trajectory
+    doc: "https://docs.openclaw.ai/tools/trajectory"
+    tier: optional
+
+  - id: reactions
+    doc: "https://docs.openclaw.ai/tools/reactions"
+    tier: low
+
+  - id: clawhub
+    doc: "https://docs.openclaw.ai/tools/clawhub"
+    tier: operator_only
+    notes: "Registry workflows—not for autonomous incident agents."
+
+  - id: acp-agents
+    doc: "https://docs.openclaw.ai/tools/acp-agents"
+    tier: optional
+
+# MCP / plugin bundles: declare in gateway config when adopted (no fixed tool IDs here)
+plugin_integration:
+  notes:
+    - "Plugins register arbitrary tools via api.registerTool; see https://docs.openclaw.ai/tools/plugin"
+    - "Configured bundle MCP tools appear when enabled (tools.profile interactions documented on tools index)."
+    - "Use Composio or custom MCP servers for SIEM, ticketing, cloud APIs—see skills/composio/SKILL.md"

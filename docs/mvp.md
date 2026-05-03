@@ -1,15 +1,15 @@
-# Giskard MVP Plan
+# Zeroth Guard MVP Plan
 
 ## 1. MVP Goal
 
-Build the smallest end-to-end version of Giskard that can:
+Build the smallest end-to-end version of Zeroth Guard that can:
 
 - detect a real threat pattern on a home subnet
 - execute a safe automatic defensive action under policy guardrails
 - verify that action succeeded
 - present alert, action, and verification status in the iPhone app
 
-This should run locally on the in-subnet Mac mini first.
+Software bring-up may start on the **development laptop** running **Ubuntu 26.04** (Intel i9-14900HX, NVIDIA RTX 4070 Laptop 8 GB VRAM, 32 GB RAM, 1 TB storage—see `docs/hardware.md` §1.1). The **stable MVP target** remains an in-subnet **Mac mini** node as described in that document.
 
 ---
 
@@ -36,7 +36,8 @@ Recommended first scenario:
 - suspicious outbound C2/phishing domain from a subnet device
 
 ### 2.3 Keep MVP Local-First
-- Run control plane + agent swarm on Mac mini
+- Run control plane + agent swarm on the prototype laptop first if needed, then on the Mac mini home node
+- Size workloads for **32 GB RAM** and **8 GB VRAM** during prototype (smaller models, fewer concurrent agents than the 256 GB reference)
 - Avoid unnecessary cloud dependencies in MVP
 - Add remote/hybrid components after local loop is stable
 
@@ -63,6 +64,7 @@ Recommended first scenario:
 - APNs push notifications
 
 ### 3.3 Infrastructure and Runtime
+- **Prototype host OS:** Ubuntu 26.04 on the development laptop (see `docs/hardware.md` §1.1)
 - Process supervision (services/containers)
 - Primary datastore for incidents and audit (e.g., Postgres)
 - Optional message bus (can defer in early MVP)
@@ -91,7 +93,7 @@ Recommended first scenario:
 - Policy Agent
 - Response Coordinator Agent
 - Verification Agent
-- Giskard Interface Agent (only user-facing)
+- Zeroth Guard Interface Agent (only user-facing)
 
 ---
 
@@ -166,7 +168,7 @@ MVP is complete when all are true:
 - Every action includes verification status and audit entry
 - iPhone app receives alerts and displays actionable incident context
 - Emergency override actions require user confirmation with secure auth controls
-- End-to-end loop works reliably on Mac mini local deployment
+- End-to-end loop works reliably on **Mac mini** local deployment (after proving the vertical slice on the **development laptop** where applicable)
 
 ---
 

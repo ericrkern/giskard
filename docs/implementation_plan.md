@@ -1,10 +1,10 @@
-# Giskard Implementation Plan for OpenClaw Subnet Deployment
+# Zeroth Guard Implementation Plan for OpenClaw Subnet Deployment
 
 ## 1. Purpose and Outcome
 
-This plan defines the step-by-step implementation required to run Giskard on an OpenClaw runtime inside a protected network subnet, while protecting:
+This plan defines the step-by-step implementation required to run Zeroth Guard on an OpenClaw runtime inside a protected network subnet, while protecting:
 
-- the Mac-based control node running Giskard
+- the Mac-based control node running Zeroth Guard
 - all systems on the same subnet (computers, phones/tablets, IoT)
 - selected target macOS hosts through managed installation and policy enrollment
 
@@ -16,7 +16,7 @@ It also includes the iOS app scope for management, configuration, action visibil
 
 ### 2.1 Core Topology
 - **Control node:** Mac mini (Apple Silicon) in trusted management VLAN/segment
-- **Runtime:** OpenClaw multi-agent swarm + Giskard orchestrator
+- **Runtime:** OpenClaw multi-agent swarm + Zeroth Guard orchestrator
 - **Data path:** local ingest, detection, policy, response, verification, evidence/audit
 - **Control path:** router/firewall/DNS adapters for subnet-wide enforcement
 - **User path:** iOS app is the only operator-facing interface
@@ -106,7 +106,7 @@ It also includes the iOS app scope for management, configuration, action visibil
 - Policy Agent
 - Response Coordinator Agent
 - Verification Agent
-- Giskard Interface Agent
+- Zeroth Guard Interface Agent
 
 ### Step 2.3 - Implement guarded command pipeline
 - Enforce workflow:

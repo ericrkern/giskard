@@ -1,0 +1,58 @@
+# OpenClaw tool manifest — Network Pulse (network-scan-agent wrapper)
+# Register this definition with the OpenClaw runtime so swarm agents can invoke a stable skill boundary.
+
+tool:
+  id: zerothguard.network_pulse
+  version: "1.0.0"
+  title: Network Pulse
+  description: >
+    Scheduled or on-demand LAN discovery: subnet sweep, common TCP probes, hostname/MAC enrichment,
+    deduplicated inventory artifacts. Optional deep mode runs multi-stage nmap inspection per known host.
+    Upstream implementation lives in external/network-scan-agent (Git submodule).
+
+  tags:
+    - network
+    - discovery
+    - inventory
+    - zeroth-guard-skill
+
+  runtime:
+    kind: python_script
+    entrypoint: wrapper.py
+    working_directory: tools/network_pulse
+
+  timeouts_suggested:
+    pulse: 900
+    deep: 3600
+
+  parameters:
+    - name: mode
+      type: string
+      enum: [pulse, deep]
+      default: pulse
+      description: pulse runs network_scan_agent.py; deep runs deep_scan.py over hosts derived from cache/devices.md.
+
+    - name: workspace
+      type: string
+      required: false
+      description: >
+        Directory containing network_scan_agent.py and deep_scan.py.
+        Default resolves to <zeroth-guard-repo>/external/network-scan-agent.
+
+    - name: timeout_seconds
+      type: integer
+      required: false
+      default: 900
+      minimum: 60
+      description: Subprocess timeout for the upstream scanner.
+
+  outputs:
+    json_stdout:
+      description: >
+        Single JSON object with status, workspace path, artifact paths, and a short summary for orchestrator ingestion.
+
+    artifact_paths:
+      - devices.md
+      - .seen_devices.json
+      - .scan_snapshots.json
+      - deep_scan_results.json

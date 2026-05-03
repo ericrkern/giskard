@@ -1,15 +1,15 @@
-# OpenClaw Agent Swarm for Giskard
+# OpenClaw Agent Swarm for Zeroth Guard
 
 ## 1. Overview
 
-This document defines the **agent swarm** used in OpenClaw to implement Giskard's multi-agent home defense model.
+This document defines the **agent swarm** used in OpenClaw to implement Zeroth Guard's multi-agent home defense model.
 
 Design intent:
 - each agent has a narrow, well-defined mission
 - agents monitor different parts of the environment continuously in parallel
-- all findings and proposed actions flow to **Giskard Orchestrator**
-- only Giskard communicates with the end user (iPhone app)
-- defensive actions execute automatically under policy direction from the Giskard control agent
+- all findings and proposed actions flow to **Zeroth Guard Orchestrator**
+- only the **Zeroth Guard Interface Agent** shapes user-visible messaging for **Zeroth Guard Mobile** (iPhone app); no domain agent speaks “product truth” directly to owners
+- defensive actions execute automatically under policy direction from the Zeroth Guard control agent
 
 ---
 
@@ -20,7 +20,7 @@ At a high level, OpenClaw runs:
 1. **Domain Monitoring Agents** (network, endpoint, mobile, IoT, identity, deception)
 2. **Decision and Control Agents** (correlation, risk, policy, response)
 3. **Evidence and Learning Agents** (forensics, reporting, feedback)
-4. **Interface Agent** (single user communication via Giskard)
+4. **Interface Agent** (single customer-facing channel via Zeroth Guard Mobile)
 
 All agents are independent workers with explicit contracts:
 - input event schema
@@ -230,7 +230,7 @@ All agents are independent workers with explicit contracts:
 
 ---
 
-## 6. Giskard Interface Agent (User-Facing Gateway)
+## 6. Zeroth Guard Interface Agent (User-Facing Gateway)
 
 This is the **only agent that talks to the end user**.
 
@@ -282,7 +282,7 @@ If starting lean, use this initial set:
 6. Policy Agent
 7. Response Coordinator Agent
 8. Verification Agent
-9. Giskard Interface Agent
+9. Zeroth Guard Interface Agent
 
 Then add IoT/Identity/Deception/Forensics/Feedback agents iteratively.
 
@@ -290,8 +290,8 @@ Then add IoT/Identity/Deception/Forensics/Feedback agents iteratively.
 
 ## 9. Summary
 
-OpenClaw enables Giskard as a **coordinated defensive swarm**:
+OpenClaw enables Zeroth Guard as a **coordinated defensive swarm**:
 - specialized agents monitor distinct domains in parallel
 - orchestration agents make deterministic, policy-safe decisions
 - evidence and learning agents improve quality over time
-- Giskard remains the single, trusted user interface through iPhone
+- Zeroth Guard Mobile remains the single, trusted customer interface through iPhone

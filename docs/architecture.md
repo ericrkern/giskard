@@ -1,36 +1,48 @@
-![Giskard Multi-Agent Home Architecture](./giskard-multi-agent-home-architecture.png)
+![Zeroth Guard Multi-Agent Home Architecture](./zeroth-guard-multi-agent-home-architecture.png)
 
-![Giskard Home Overview](./giskard-home-overview.png)
+![Zeroth Guard Home Overview](./zeroth-guard-home-overview.png)
 
-![Giskard Core Security Architecture](./active-security-agent-architecture.png)
+![Zeroth Guard Core Security Architecture](./active-security-agent-architecture.png)
 
-![Giskard Agent Runtime Architecture](./agent-architecture.png)
+![Zeroth Guard Agent Runtime Architecture](./agent-architecture.png)
 
-![Local Ollama and Giskard Interaction Architecture](./ollama-agent-architecture.png)
+![Local Ollama and Zeroth Guard Interaction Architecture](./ollama-agent-architecture.png)
 
-# Giskard  
+![Zeroth Guard AI-Powered Autonomous Security Agent Architecture](./zeroth-guard-ai-powered-agent-architecture.png)
+
+# Zeroth Guard  
 ## Multi-Agent Autonomous Defense Architecture
 
 ---
 
 ## Scope and Terminology
 
-- **Giskard**: the full defense platform.
+- **Zeroth Guard**: the full defense platform.
 - **OpenClaw agent swarm**: specialized monitoring and decision agents running in parallel.
-- **Giskard Orchestrator**: the only component that correlates all agent findings and communicates with end users.
-- **Giskard Mobile (iPhone app)**: the only end-user interface for action/result reporting and audit views.
+- **Network scan agent (network pulse)**: a **swarm skill/tool**—not a parallel control plane. Domain agents invoke it on a schedule or when investigations need fresh topology and inventory; results normalize into events for the orchestrator. Implementation is pinned at `external/network-scan-agent` ([network-scan-agent](https://github.com/ericrkern/network-scan-agent)), with an OpenClaw-facing **executable wrapper** at `tools/network_pulse/` (manifest + `wrapper.py`) suitable for gated `exec` calls.
+- **Workspace skills (`skills/`)**: curated **AgentSkills**-style `SKILL.md` bundles that recommend optional [ClawHub](https://clawhub.ai/) capabilities (integrations, automation, IoT context, search, memory patterns). They provide prompts and install pointers only—upstream skill code is installed via `openclaw skills install` after operator review ([OpenClaw skills](https://docs.openclaw.ai/tools/skills)).
+- **Repository tools (`tools/`)**: (1) **wrappers** that run deterministic subprocesses (for example Network Pulse); (2) **`tools/openclaw/`** registry YAML listing OpenClaw **built-in and documented extension tools** for allowlisting—those tools ship with the OpenClaw gateway or plugins, not as code in this repo ([Tools and plugins](https://docs.openclaw.ai/tools)).
+- **Zeroth Guard Orchestrator**: the only component that correlates all agent findings and communicates with end users.
+- **Zeroth Guard Mobile (iPhone app)**: the only end-user interface for action/result reporting and audit views.
+
+The figure **Zeroth Guard AI-Powered Autonomous Security Agent Architecture** (`zeroth-guard-ai-powered-agent-architecture.png`) summarizes the **core processing pipeline** inside the orchestrator: ingestion → detection → risk and context → policy disposition → response orchestration, plus local LLM reasoning, modular skills, storage, APIs, and integrations. It may show a generic operator **web dashboard** for visualization; that surface is **optional** (admin/SOC or internal tooling). **Customer-facing** interaction remains **Zeroth Guard Mobile only**, consistent with the User Interface Plane below.
 
 Related documents:
+- `docs/zerothguard.md` (Asimov / Zeroth Law naming background)
 - `docs/agents.md`
 - `docs/hardware.md`
 - `docs/ios-app-spec.md`
 - `docs/mvp.md`
+- Network Pulse / network scan agent deployment and data paths: `external/network-scan-agent/docs/configuration.md`
+- OpenClaw workspace skill recommendations: `skills/README.md` (per-skill `skills/*/SKILL.md`)
+- Executable wrappers + OpenClaw tool registry: `tools/README.md`, `tools/openclaw/README.md`, `tools/openclaw/zeroth-guard-openclaw-tools.yaml`
+- OpenClaw agent personas + swarm manifest: `agents/README.md`, `agents/SOUL.md`, `agents/AGENTS.md`, `agents/swarm-manifest.yaml`, `agents/roles/`
 
 ---
 
 ## 1. Overview
 
-**Giskard** is an autonomous, policy-driven security platform designed to:
+**Zeroth Guard** is an autonomous, policy-driven security platform designed to:
 
 - Continuously monitor systems connected to the internet  
 - Detect intrusion attempts and anomalous behavior in real time  
@@ -38,11 +50,11 @@ Related documents:
 - Preserve forensic evidence  
 - Provide actionable reporting and insights  
 
-Giskard operates as a **multi-agent swarm** with a local orchestrator in the protected subnet, enabling fast local response with shared intelligence across specialized agents.
+Zeroth Guard operates as a **multi-agent swarm** with a local orchestrator in the protected subnet, enabling fast local response with shared intelligence across specialized agents.
 
-Giskard is designed to behave like a **24/7 virtual terminal security operator**: continuously watching live system activity, investigating suspicious patterns as they emerge, and applying defensive changes immediately when policy conditions are met.
+Zeroth Guard is designed to behave like a **24/7 virtual terminal security operator**: continuously watching live system activity, investigating suspicious patterns as they emerge, and applying defensive changes immediately when policy conditions are met.
 
-By default, defensive actions are **automatic** under policy guardrails and executed by the Giskard control agent. The iPhone app reports resulting actions and outcomes rather than serving as a manual approval gate for normal operations.
+By default, defensive actions are **automatic** under policy guardrails and executed by the Zeroth Guard control agent. The iPhone app reports resulting actions and outcomes rather than serving as a manual approval gate for normal operations.
 
 ---
 
@@ -61,12 +73,14 @@ By default, defensive actions are **automatic** under policy guardrails and exec
 
 ### Design Principles
 - **Autonomous First** - Works even when disconnected
+- **Local-First (Privacy & Control)** - Sensitive telemetry and reasoning stay on the protected subnet where feasible
 - **Policy Driven** - Deterministic guardrails for all actions
 - **Least Risk Response** - Escalate only when necessary
-- **Explainable Actions** - Every action is auditable
+- **Explainable Actions** - Every action is auditable; local LLM outputs augment explanation but do not bypass policy
 - **Zero Trust Enforcement** - Continuous verification
 - **Tamper Resistant** - Protect the agent itself
 - **Operator-Grade Vigilance** - Always-on monitoring loop with immediate action
+- **Modular, Extensible, Observable** - Skills/tools and integrations attach through guarded interfaces
 
 ---
 
@@ -81,6 +95,9 @@ The system is composed of major domains:
 
 ### 3.2 Protected Subnet Agent Swarm (OpenClaw Runtime)
 - Domain monitoring agents (network, endpoint, mobile, IoT, identity, deception)
+- **Swarm skills/tools** (for example the **network scan agent** via `tools/network_pulse/`) invoked by agents for scheduled or on-demand discovery, baseline snapshots, and drift signals—outputs feed the orchestrator like any other sensor-derived finding
+- **OpenClaw gateway tools** (`exec`, `web_search`, `sessions`/`subagents`, `cron`, filesystem tools, optional browser—see `tools/openclaw/zeroth-guard-openclaw-tools.yaml`) under explicit **allowlists** and **[exec approvals](https://docs.openclaw.ai/tools/exec-approvals)**; dangerous or customer-impersonating tools (`message`, `browser`, `gateway`) default to **operator-only** or **denied** for autonomous defense agents
+- **Workspace skills** from `skills/` injected into agent context per OpenClaw precedence rules—optional ClawHub installs for integrations (Composio), automation (n8n), IoT (Home Assistant), grounded search (Exa / SearXNG / Ollama search), tuning memory (self-improving pattern), voice (ElevenLabs), transcription (Whisper), and cautious protocol-analysis guidance
 - Local processing (detection + risk + policy proposals)
 - Coordinated enforcement through guarded command pipelines
 - Evidence and audit event production
@@ -91,7 +108,7 @@ The system is composed of major domains:
 - Device profiling for IoT, endpoints, phones/tablets, and unmanaged hosts
 - Segment-aware response across trusted and untrusted zones
 
-### 3.4 Giskard Orchestrator (Local Control Plane)
+### 3.4 Zeroth Guard Orchestrator (Local Control Plane)
 - Event ingestion and streaming
 - Correlation and analytics
 - Global policy engine
@@ -104,6 +121,66 @@ The system is composed of major domains:
 - Verification and audit visibility
 - No direct end-user communication from domain agents
 
+Optional **operator web dashboards** (for example FastAPI-backed REST plus a React UI) may exist in some deployments for administrators or service operators; they are not a substitute for the iPhone app as the defined **customer** control and audit surface.
+
+### 3.6 Agent swarm topology (OpenClaw)
+
+The **OpenClaw runtime** hosts parallel agent workers mapped to Zeroth Guard roles (`docs/agents.md`, `agents/swarm-manifest.yaml`, `agents/roles/`). Domain monitors emit **findings**; control-plane agents merge, score, authorize, **execute**, and **verify**; evidence agents preserve narratives and tuning signals; only the **Zeroth Guard Interface Agent** shapes user-visible messaging for **Zeroth Guard Mobile**.
+
+```mermaid
+flowchart TB
+  subgraph DM["Domain monitors"]
+    direction LR
+    NS["Network Sentinel"]
+    EG["Endpoint Guard"]
+    MS["Mobile Shield"]
+    IW["IoT Watcher"]
+    ID["Identity Defender"]
+    DC["Deception"]
+  end
+
+  subgraph CP["Control plane"]
+    direction TB
+    CR["Correlation"]
+    RK["Risk scoring"]
+    PL["Policy"]
+    RS["Response coordinator"]
+    VF["Verification"]
+  end
+
+  subgraph EV["Evidence & learning"]
+    direction LR
+    FR["Forensics"]
+    RP["Reporting"]
+    FB["Feedback / tuning"]
+  end
+
+  IF["Zeroth Guard Interface Agent"]
+  OR["Zeroth Guard Orchestrator\n(ingest • analytics • APIs • audit store)"]
+  PH["Zeroth Guard Mobile"]
+
+  DM -->|"findings"| CR
+  CR --> RK --> PL --> RS --> VF
+  VF --> FR
+  VF --> RP
+  RP --> IF
+  FB -.->|"threshold / rule proposals"| PL
+  RS <-->|"policy actions • verification probes"| OR
+  DM <-->|"telemetry • wrappers • schedules"| OR
+  IF -->|"alerts • summaries • audit"| PH
+```
+
+**Agent roster (logical IDs)**
+
+| Tier | Agents |
+|------|--------|
+| Domain monitors | Network Sentinel, Endpoint Guard, Mobile Shield, IoT Watcher, Identity Defender, Deception |
+| Control plane | Correlation, Risk scoring, Policy, Response coordinator, Verification |
+| Evidence & learning | Forensics, Reporting, Feedback / tuning |
+| Customer interface | Zeroth Guard Interface Agent only |
+
+Enforcement runs **only** through **Policy → Response coordinator** after authorization; domain monitors do not bypass that chain. Personality and operating constraints live in `agents/SOUL.md` and `agents/AGENTS.md`.
+
 ---
 
 ## 4. Component Architecture
@@ -115,10 +192,13 @@ Collects telemetry from multiple sources:
 | Sensor Type | Description |
 |------------|------------|
 | Kernel / eBPF | Syscalls, runtime behavior |
-| Network Monitoring | Connections, flows |
+| Process & Host Telemetry | Process monitoring, syslog and host audit streams |
+| Network Monitoring | Connections, flows, NetFlow, packet capture metadata |
 | File Integrity | Sensitive file changes |
-| Auth & Identity | Logins, tokens, privileges |
-| Application Logs | APIs, services, configs |
+| Auth & Identity | SSH/PAM/login trails, failed auth, tokens, privileges |
+| Application Logs | Web, database, API, and service events |
+| External Threat Intelligence | IP/domain/hash reputation, CVE and vulnerability context |
+| Scheduled Network Baseline | Periodic discovery or drift checks against expected topology—typically produced when swarm agents run the **network scan agent** skill (see §4.2 modular skills) |
 | Deception | Honeytokens, decoys |
 
 ---
@@ -165,7 +245,15 @@ Evaluates:
 - Correlation with other events
 
 #### Policy Engine
-Determines response:
+Determines response using **risk-informed disposition** alongside explicit outcomes:
+
+| Disposition | Meaning |
+|-------------|---------|
+| **Alert** | Notify and record; no automated containment unless paired with risk thresholds |
+| **Ask** | Escalate for human or app-mediated confirmation on sensitive paths |
+| **Act (Auto)** | Execute policy-authorized enforcement automatically under guardrails |
+
+Typical **risk-to-response** mapping:
 
 | Risk Level | Action |
 |----------|--------|
@@ -174,13 +262,93 @@ Determines response:
 | High | Block / Kill / Revoke |
 | Critical | Isolate / Quarantine |
 
+#### Local LLM reasoning layer (optional)
+A **local** large language model runtime (for example via **Ollama** with models such as Llama 3 or Mistral) assists the core engine without replacing deterministic policy:
+
+- Explain correlated events and incident context in natural language
+- Propose candidate actions that still must pass policy and simulation gates
+- Summarize timelines for operators and mobile clients
+- Answer constrained analyst-style queries over stored events and knowledge
+
+The LLM does **not** directly execute enforcement commands; execution remains with the response orchestrator and guarded pipelines.
+
+#### Modular skills and tools
+On-demand and scheduled **skills** compose investigations and responses. Swarm agents call these through guarded interfaces (same policy and audit envelope as other agent actions); skills do **not** bypass the orchestrator for customer-facing reporting or autonomous enforcement decisions.
+
+| Skill / Tool | Role |
+|--------------|------|
+| Network scan agent (network pulse) | **Swarm-invoked** LAN discovery—upstream repo at `external/network-scan-agent`; OpenClaw invokes **`tools/network_pulse/wrapper.py`** (`pulse` / `deep`) under policy; see **capabilities** below |
+| Log collector | Pull or receive logs from local and remote sources |
+| Threat intel lookup | Resolve IPs, domains, hashes, CVE references |
+| Process analyzer | Inspect trees, behavior, and network bindings |
+| File analyzer | Hashing, reputation, YARA, structured inspection |
+| Honeytoken checker | Detect deception triggers |
+| Report generator | Produce PDF/HTML or structured exports for cases |
+
+##### Network scan agent — reference implementation capabilities (`external/network-scan-agent`)
+
+These behaviors describe the **current Network Pulse codebase** so swarm integration can map outputs to normalized events (inventory changes, posture deltas, correlation signals). Scheduling, subnets, and ports are **configurable** in code; values below are the stock reference profile.
+
+**Discovery loop (pulse)**
+- **Cadence:** periodic runs via **systemd timer** or **cron** (deployment examples use **15-minute** intervals for pulse; alternate profiles may use hourly schedules).
+- **Scope:** multiple **RFC 1918 /24 subnets** in one run (reference list includes several `192.168.x.0/24` ranges—extend or narrow per site).
+- **Live host finding:** sweep addresses per subnet (e.g. ping-driven reachability) before finer probes.
+- **TCP service discovery:** probe a **common-services port set** (reference includes SSH, HTTP/S, SMB, IPP, alternative HTTP ports, VNC-class and dev ports such as **22, 80, 443, 445, 631, 8080, 5900, 3000, 5000**).
+- **Enrichment:** resolve **hostnames** and **MAC addresses** where available; apply **heuristic device typing** (for example printer vs router vs phone-class endpoints).
+- **Dedup and drift:** maintain a **seen-device cache** (`.seen_devices.json`) so only genuinely **new** hosts raise prominent alerts; append **scan history** statistics (new vs online vs total known).
+
+**Structured artifacts for downstream agents**
+- **`devices.md`:** human-readable rolling inventory, **new-device alert** sections with timestamps, optional consolidated sections (for example **iPhone identity correlation** comparing reference vs routed-subnet candidate IPs using MAC/hostname evidence logged to `.iphone_identity_checks.json`).
+- **`.scan_snapshots.json`:** time-series **online-device snapshots** per scan for baseline and drift analysis.
+- **`deep_scan_results.json`:** latest **deep inspection** payload consumed by tooling that needs port/service detail.
+
+**Optional deep inspection (`deep_scan.py`)**
+- Multi-stage **nmap** workflow per host: host discovery gate; **fast TCP discovery** (e.g. top ports); **full TCP** on responsive hosts; **UDP** probes against a **common UDP service list**; **service/version and safe script** fingerprinting (e.g. banners, HTTP title, TLS cert, SSH algorithms, SMB OS hints); **optional OS detection** when executed with sufficient privileges.
+- Intended for **on-demand or scheduled depth**, not every pulse tick—agents should invoke under policy to manage runtime and network noise.
+
+**Network Pulse dashboard (operator tooling, optional)**
+- **Flask** web UI (typical **port 5000**) over the same inventory files: live **online/offline/unknown** status, search/filter, **manual scan trigger**, auto-refresh.
+- Companion **HTTP APIs** (for example device summaries plus optional **audit**, **Wi‑Fi SSID visibility**, and **packet/trace summaries**) backed by **sudo-scoped helper scripts** where deployments enable `auditd`, wireless scans, or controlled captures—see `external/network-scan-agent/docs/configuration.md`.
+- This dashboard is **internal/operator** convenience; it does **not** replace **Zeroth Guard Mobile** as the customer-facing plane.
+
+**Runtime dependencies (reference)**
+- **Python 3**, **`nmap`** for discovery and deep scans; deployment docs also reference helpers such as **tcpdump** / **tshark**, **netcat**, and **auditd** when dashboard audit/trace features are enabled.
+
+##### OpenClaw workspace skills (`skills/`)
+
+Agent-facing guidance lives in **`skills/*/SKILL.md`** ([AgentSkills](https://agentskills.io/)-compatible). Each entry documents **when** the capability helps Zeroth Guard and **how** to install from [ClawHub](https://clawhub.ai/)—not vendored code. Recommended bundles in this repository:
+
+| Skill folder | Intended use |
+|--------------|----------------|
+| `skills/composio/` | Broad SaaS/API integrations (ticketing, GitHub, Slack-style glue) behind least-privilege credentials |
+| `skills/n8n-workflow-automation/` | Local playbook and enrichment automation |
+| `skills/home-assistant/` | IoT state context for **IoT Watcher** correlations |
+| `skills/exa-search/` | Technical / doc-grounded search (requires API key when enabled) |
+| `skills/self-improving-agent/` | Structured operational memory and tuning notes—never auto-promoted to policy |
+| `skills/elevenlabs-agents/` | Optional voice escalation—policy-gated, not a customer channel |
+| `skills/openai-whisper/` | Transcription for analyst notes—confirm local vs API behavior before enablement |
+| `skills/protocol-reverse-engineering/` | Traffic/protocol investigation posture—high misuse risk; human-directed |
+
+Third-party skills are **untrusted until reviewed** ([OpenClaw skills security](https://docs.openclaw.ai/tools/skills)).
+
+##### Repository tools (`tools/`) and OpenClaw runtime registry
+
+**Executable wrappers** live under `tools/<name>/` with a README and, where applicable, an OpenClaw-oriented manifest (for example `tools/network_pulse/openclaw_tool.yaml`). Agents typically invoke wrappers through **`exec`** with command allowlists and timeouts.
+
+**OpenClaw built-in and documented extension tools** are enumerated in **`tools/openclaw/zeroth-guard-openclaw-tools.yaml`** for architecture and onboarding alignment. That file groups:
+
+- **Built-ins** — for example `exec` / `process`, `code_execution`, `browser`, `web_search`, `x_search`, `web_fetch`, `read` / `write` / `edit`, `apply_patch`, `message`, `canvas`, `nodes`, `cron`, `gateway`, media tools (`image`, `image_generate`, `tts`, …), session orchestration (`sessions_*`, `subagents`, `session_status`, `agents_list`), `memory_search` / `memory_get` when memory is enabled ([tools index](https://docs.openclaw.ai/tools)).
+- **Extensions** — documented search and workflow helpers (Exa, SearXNG, Ollama search, Tavily, Perplexity, …), `llm-task`, `lobster`, `pdf`, sandbox / elevated-mode docs, etc., as linked in the registry.
+
+**Configuration practice:** use OpenClaw **`tools.allow` / `tools.deny`** and **`tools.profile`** so autonomous defense agents retain **`group:fs`**, **`group:web`** (sanitized), **`cron`**, **`subagents`**, tight **`exec`**, and **deny by default** `browser`, `gateway`, and **`message`** unless an operator agent explicitly needs them. Customer-visible alerting remains **Zeroth Guard Mobile**, not chat channels.
+
 ---
 
 ### 4.3 Local Enforcement
 
 Executes immediate defensive actions:
 
-- Block IP / traffic (iptables/nftables)
+- Block IP / traffic (iptables / nftables / firewalld or equivalent host firewall APIs)
 - Kill malicious processes
 - Revoke sessions / tokens
 - Isolate container or host
@@ -197,6 +365,16 @@ Enforcement is implemented as a guarded command pipeline that mirrors terminal o
 ---
 
 ### 4.4 Evidence & Data Store
+
+Tiered storage aligns high-volume telemetry with structured incident state:
+
+| Tier | Typical technology | Contents |
+|------|-------------------|----------|
+| Events / incident metadata | SQLite or Postgres | Sessions, incidents, entities, workflow state |
+| Logs / search analytics | ClickHouse or OpenSearch | High-volume normalized logs and hunt queries |
+| File / artifact store | Object or filesystem vault | PCAP excerpts, disk artifacts, generated reports |
+| Baselines | Configurable store | Expected network topology, host posture, user behavior baselines |
+| Knowledge base | Versioned artifacts | MITRE ATT&CK mappings, detection rules, response playbooks |
 
 Stores forensic artifacts:
 
@@ -218,6 +396,10 @@ Features:
 #### Ingest & Message Bus
 - Kafka / NATS streaming pipeline
 - Secure ingestion (mTLS)
+
+#### API & realtime gateway
+- REST API (for example **FastAPI**) for configuration, queries, and mobile backends
+- WebSocket or SSE for live incidents and orchestration status
 
 #### Analytics & Correlation
 - Multi-host correlation
@@ -248,7 +430,7 @@ Features:
 - SOAR tools
 - Identity providers (IAM / IdP)
 - Ticketing systems
-- Email / Slack alerts
+- Email / Slack / SMS alerts and outbound webhooks
 - Threat intelligence feeds
 - Secrets managers
 - Home/SOHO routers and firewalls (API/SSH)
@@ -260,7 +442,7 @@ Features:
 
 ### 4.7 Autonomous Terminal Operator Mode
 
-Giskard's orchestrator runtime models an experienced SOC engineer at a shell:
+Zeroth Guard's orchestrator runtime models an experienced SOC engineer at a shell:
 
 - Continuously tails and inspects critical telemetry streams
 - Opens short-lived investigations for suspicious chains of events
@@ -270,9 +452,9 @@ Giskard's orchestrator runtime models an experienced SOC engineer at a shell:
 
 ---
 
-### 4.8 iOS App Architecture (Giskard Mobile)
+### 4.8 iOS App Architecture (Zeroth Guard Mobile)
 
-The iOS app extends Giskard into a secure mobile control and response surface.
+The iOS app extends Zeroth Guard into a secure mobile control and response surface.
 
 #### App Modules
 - **Auth & Session Module**: Sign in with OIDC/IdP, MFA, token refresh, device binding
@@ -298,7 +480,7 @@ The iOS app extends Giskard into a secure mobile control and response surface.
 
 #### Notification and Action Flow
 1. A domain agent detects threat activity and publishes findings
-2. Giskard correlates, scores risk, and creates an incident
+2. Zeroth Guard correlates, scores risk, and creates an incident
 3. Control plane sends APNs push with minimal metadata
 4. Backend validates policy and executes automatic response actions
 5. User opens app and fetches signed incident details
@@ -308,8 +490,8 @@ The iOS app extends Giskard into a secure mobile control and response surface.
 
 ## 5. Data Flow
 
-1. Domain agents collect events across host, network, mobile, and IoT surfaces  
-2. Domain agents normalize findings and submit them to Giskard Orchestrator  
+1. Domain agents collect events across host, network, mobile, and IoT surfaces (including **network pulse** runs via `tools/network_pulse/` or equivalent scheduler)  
+2. Domain agents normalize findings and submit them to Zeroth Guard Orchestrator  
 3. Correlation and risk scoring produce a unified incident view  
 4. Policy engine determines allowed action paths  
 5. Response coordinator dispatches policy-authorized enforcement actions  
@@ -442,6 +624,7 @@ Deployment pattern:
 - Tamper-resistant logs
 - Secure bootstrapping
 - Isolation of agent components
+- **OpenClaw tools and ClawHub skills:** review every workspace skill and registry-listed tool before enablement; prefer sandboxed or approval-gated **`exec`**, never expose **`gateway`** or **`browser`** to untrusted prompts, and treat **`message`** channels as operator-only ([sandboxing](https://docs.openclaw.ai/gateway/sandboxing), [exec approvals](https://docs.openclaw.ai/tools/exec-approvals))
 
 ---
 
@@ -455,9 +638,15 @@ Deployment pattern:
 - Subnet adapters: router APIs, DNS filtering APIs, DHCP/ARP collectors
 - Mobile adapters: MDM/UEM connectors and mobile posture signals (where permitted)
 
+### OpenClaw runtime (swarm host)
+
+- **Gateway** hosts built-in tools and optional plugins per [Tools and plugins](https://docs.openclaw.ai/tools); allowlists in `openclaw.json` align with `tools/openclaw/zeroth-guard-openclaw-tools.yaml`
+- **Workspace skills** loaded from `skills/` (and managed installs under `~/.openclaw/skills` when used)—see [Skills](https://docs.openclaw.ai/tools/skills)
+- **Wrapped subprocesses:** `tools/network_pulse/wrapper.py` for Network Pulse; extend `tools/` for additional guarded CLI adapters
+
 ### Backend
 - Event Bus: Kafka / NATS  
-- Storage: OpenSearch / ClickHouse  
+- Storage: SQLite or Postgres for transactional incident state; OpenSearch / ClickHouse for log analytics  
 - Policy Engine: OPA  
 - API: FastAPI / Go  
 - Mobile Push: APNs provider service
@@ -471,7 +660,7 @@ Deployment pattern:
 - Telemetry: Privacy-preserving mobile diagnostics and crash reporting
 
 ### UI
-- React dashboard  
+- React (or similar) **operator dashboard** where deployments include a web console—optional and distinct from **Zeroth Guard Mobile** as the customer-facing interface  
 - Real-time alerts  
 - Incident visualization  
 
@@ -492,11 +681,12 @@ Deployment pattern:
 
 ## 13. Summary
 
-Giskard is a **modern multi-agent autonomous security system** that combines:
+Zeroth Guard is a **modern multi-agent autonomous security system** that combines:
 
-- specialized domain agents operating in parallel  
+- specialized domain agents operating in parallel, including **swarm skills** such as the network scan agent (`external/network-scan-agent` + `tools/network_pulse/`) and optional **workspace skills** under `skills/` (ClawHub-backed integrations and automation)
+- an explicit **OpenClaw tool surface** catalogued in `tools/openclaw/zeroth-guard-openclaw-tools.yaml`, constrained by allowlists and approvals alongside core filesystem and session tools  
 - local orchestration with policy-bounded decisioning  
-- automatic response execution directed by the Giskard control agent  
+- automatic response execution directed by the Zeroth Guard control agent  
 - subnet-level visibility and control for home environments  
 - secure iPhone-based reporting through one trusted interface  
 

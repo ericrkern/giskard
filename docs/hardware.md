@@ -1,10 +1,10 @@
-![Giskard Hardware Architecture](./hardware-architecture.png)
+![Zeroth Guard Hardware Architecture](./hardware-architecture.png)
 
-# Giskard Hardware Architecture
+# Zeroth Guard Hardware Architecture
 
 ## 1. Deployment Context
 
-This document describes the hardware architecture for running the Giskard multi-agent swarm on:
+This document describes the hardware architecture for running the Zeroth Guard multi-agent swarm on:
 
 - **Host:** Mac mini
 - **Processor:** Apple Silicon **M5 Max**
@@ -12,6 +12,20 @@ This document describes the hardware architecture for running the Giskard multi-
 - **Placement:** inside the protected home/personal subnet
 
 Goal: run all core agents locally in a high-trust edge node while keeping latency low and avoiding dependence on external compute for critical defense decisions.
+
+### 1.1 Initial prototype platform (development laptop)
+
+The **first integration prototype** is expected to run on a portable workstation-class laptop with approximately this configuration:
+
+| Component | Specification |
+|-----------|----------------|
+| OS | **Ubuntu 26.04** |
+| CPU | Intel Core **i9-14900HX** |
+| GPU | NVIDIA GeForce **RTX 4070 Laptop** (**8 GB** VRAM) |
+| System RAM | **32 GB** |
+| Storage | **1 TB** |
+
+Treat this as a **development and bring-up target**, not the long-term home-appliance node. Compared with the Mac mini reference profile below, plan for **lower concurrency**, **smaller or more aggressively quantized local LLMs**, and **strict RAM discipline**. Use the **CUDA-capable GPU** for bounded local inference (for example Ollama or llama.cpp with GPU offload) while keeping ingest, policy, and verification paths predictable on CPU unless profiling shows safe headroom. Standardize on **vendor NVIDIA drivers + CUDA user-space** compatible with this Ubuntu release for reproducible GPU offload.
 
 ---
 
@@ -23,7 +37,7 @@ flowchart LR
     Router[Home Router / Firewall / DNS]
     Subnet[Home Subnet]
     Devices[Computers / Phones / Tablets / IoT]
-    MacMini[Mac mini M5 Max 256GB<br/>Giskard Core Node]
+    MacMini[Mac mini M5 Max 256GB<br/>Zeroth Guard Core Node]
     iPhone[iPhone App]
 
     Internet --> Router
@@ -65,7 +79,7 @@ flowchart TB
         N6[Deception Agent]
       end
 
-      subgraph Orchestrator["Giskard Orchestrator"]
+      subgraph Orchestrator["Zeroth Guard Orchestrator"]
         C1[Correlation Agent]
         C2[Risk Scoring Agent]
         C3[Policy Agent]
@@ -93,26 +107,47 @@ flowchart TB
 
 ## 4. Resource Partitioning (Recommended)
 
-With 256 GB memory, use explicit resource pools so AI workloads cannot starve real-time defense loops.
+Use explicit resource pools so AI workloads cannot starve real-time defense loops. Budgets differ sharply between the **32 GB laptop prototype** and the **256 GB Mac mini** reference deployment.
 
-### 4.1 Memory Budget (Initial)
+### 4.0 Memory budget (32 GB development laptop)
+
+Approximate pools for early integration (tune with measurements):
+
+| Pool | Prototype budget |
+|------|------------------|
+| OS + interactive desktop | 4–8 GB |
+| Ingest, collectors, agent swarm, orchestrator | 8–12 GB |
+| Databases, indexes, buffers | 4–6 GB |
+| Local LLM host RAM (spillover, KV cache, tokenizer) | 4–8 GB |
+| Spike headroom | 2–4 GB |
+
+**GPU (8 GB VRAM):** size models and batch concurrency so weights + runtime fit VRAM; fall back to CPU layers or smaller context if inference competes with display or thermal limits. Prefer **quantized** checkpoints suited to consumer laptop GPUs.
+
+### 4.1 Memory Budget (Mac mini reference — 256 GB)
 - **OS + base services:** 24 GB
 - **Ingest/collectors + stream processing:** 24 GB
 - **OpenClaw domain agents:** 40 GB
-- **Giskard orchestration agents:** 32 GB
+- **Zeroth Guard orchestration agents:** 32 GB
 - **Local LLM runtime (Ollama):** 80 GB
 - **Event/evidence data services cache/buffers:** 32 GB
 - **Operational headroom/spike reserve:** 24 GB
 
 Total: **256 GB**
 
-### 4.2 CPU/GPU Strategy (Apple Silicon)
+### 4.2 CPU/GPU strategy
+
+**Mac mini (Apple Silicon):**
 - Pin ingestion, policy, and verification workers to high-priority CPU scheduling classes.
 - Run LLM inference with bounded concurrency to protect deterministic control paths.
 - Use separate worker pools:
   - **Realtime pool** (detect, policy, execution, verification)
   - **Reasoning pool** (LLM-assisted analysis/summarization)
   - **Batch pool** (reporting, model tuning, archival tasks)
+
+**Development laptop (Intel + NVIDIA RTX 4070 Laptop, 8 GB VRAM):**
+- Assume **mobile thermal limits** under sustained load; cap LLM concurrent requests and agent fan-out during demos.
+- Prefer **NVIDIA CUDA** for LLM offload where supported; keep **Tier 1** policy/response paths on CPU with predictable scheduling (same isolation intent as §6).
+- If VRAM is exhausted, reduce GPU layers, context length, or model size—never bypass policy gates to “speed up” reasoning.
 
 ### 4.3 Storage Layout (Suggested)
 - Internal NVMe:
@@ -216,9 +251,11 @@ If sustained event rates increase significantly, scale by:
 
 ## 10. Summary
 
-The Mac mini (M5 Max, 256 GB RAM) acts as a powerful **local defense appliance** for Giskard:
+**Near-term:** the **Ubuntu 26.04** laptop (**i9-14900HX / RTX 4070 Laptop / 32 GB RAM / 1 TB**) supports **prototype integration** with constrained parallelism and GPU-sized local models.
+
+**Target:** the Mac mini (M5 Max, 256 GB RAM) acts as a powerful **local defense appliance** for Zeroth Guard:
 
 - runs the full OpenClaw multi-agent swarm
 - keeps critical decisions inside the home subnet
 - provides resilient, low-latency protection for all device classes
-- maintains secure iPhone-based user visibility and control through Giskard
+- maintains secure iPhone-based user visibility and control through Zeroth Guard

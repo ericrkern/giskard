@@ -1,16 +1,14 @@
-# Giskard
+# Zeroth Guard
 
-`Giskard` is named after **R. Giskard Reventlov**, a pivotal robot character in Isaac Asimov's *Robot* series.
+**Zeroth Guard** is an autonomous, policy-driven security platform for **home and small-office networks**: a multi-agent swarm under local orchestration, **guarded automatic response**, and **Zeroth Guard Mobile** (iPhone) for alerts, audit-friendly visibility, and sensitive confirmations.
 
-In Asimov's universe, Giskard is known for advanced insight, subtle intervention, and a deep commitment to protecting humanity while operating within strict ethical boundaries. Those themes map directly to this project's purpose: autonomous defense, policy-guided action, and responsible use of intelligence to reduce harm.
+The name cites Asimov’s **Zeroth Law** framing (*humanity-scale harm avoidance precedes narrower robot directives*) as a narrative fit for **policy-bound autonomy**—not as a claim on unrelated trademarks or other commercial “Giskard” brands. See **`docs/zerothguard.md`** for literary background.
 
-The name reflects the system's core philosophy:
+Operating philosophy:
 
-- vigilant observation without unnecessary disruption
-- intelligent response guided by constraints
-- proactive protection of people and critical systems
-
-Like its namesake, Giskard is built to detect risk early, act with precision, and prioritize safety.
+- vigilant observation without unnecessary disruption  
+- intelligent response guided by explicit constraints  
+- proactive protection of people and the devices they rely on  
 
 ---
 
@@ -18,11 +16,13 @@ Like its namesake, Giskard is built to detect risk early, act with precision, an
 
 The [network-scan-agent](https://github.com/ericrkern/network-scan-agent) repo (“network pulse”) is included as a **Git submodule** at `external/network-scan-agent`. It remains its own GitHub project; this repo only records **which commit** of that repo you depend on.
 
-Clone Giskard with submodules:
+Clone this repository with submodules:
 
 ```bash
 git clone --recurse-submodules https://github.com/ericrkern/giskard.git
 ```
+
+_Update the URL if you rename the GitHub repository (for example to `zeroth-guard`)._
 
 If you already cloned without submodules:
 
@@ -30,4 +30,4 @@ If you already cloned without submodules:
 git submodule update --init --recursive
 ```
 
-To move the submodule to a newer commit on `network-scan-agent`, check out the desired revision inside `external/network-scan-agent`, then commit the submodule pointer update in Giskard.
+To move the submodule to a newer commit on `network-scan-agent`, check out the desired revision inside `external/network-scan-agent`, then commit the submodule pointer update in this repo.
