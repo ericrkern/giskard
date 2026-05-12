@@ -56,37 +56,39 @@ See **`docs/architecture.md`** for the full platform view (orchestrator, agent s
 
 ## 3. Delivery Phases (Execution Roadmap)
 
-## Phase 0 - Program Setup and Architecture Freeze
+> **Progress legend:** `✅` = **completed in this repository** (committed docs, schemas, or repo artifacts). Bullets **without** `✅` are not yet done for a **live** OpenClaw deployment (runtime install, integrations, or product code on devices).
 
-### Step 0.1 - Freeze MVP scope and acceptance criteria
-- Capture the frozen MVP definition in **`docs/phase0_acceptance_criteria.md`**.
-- Approve initial threat scenarios:
-  - suspicious DNS/C2 beaconing
-  - lateral scanning within LAN
-  - credential abuse behavior
-- Approve initial automated actions:
-  - block domain/IP at DNS/gateway
-  - isolate/quarantine device segment
-  - force re-auth or revoke session/token (where integrated)
-- Define Definition of Done for end-to-end flow (detect -> respond -> verify -> report in iOS)
+## Phase 0 - Program Setup and Architecture Freeze ✅
 
-### Step 0.2 - Define interface contracts
-- Publish schemas in **`schemas/`** and a short guide at **`docs/interface_contracts.md`**.
-- Publish common schemas for:
-  - agent findings
-  - incident objects
-  - action requests/results
-  - verification outcomes
-  - audit events
-- Include required correlation fields (`incident_id`, `asset_id`, `subnet_id`, `trace_id`)
+### Step 0.1 - Freeze MVP scope and acceptance criteria ✅
+- ✅ Capture the frozen MVP definition in **`docs/phase0_acceptance_criteria.md`**.
+- ✅ Approve initial threat scenarios:
+  - ✅ suspicious DNS/C2 beaconing
+  - ✅ lateral scanning within LAN
+  - ✅ credential abuse behavior
+- ✅ Approve initial automated actions:
+  - ✅ block domain/IP at DNS/gateway
+  - ✅ isolate/quarantine device segment
+  - ✅ force re-auth or revoke session/token (where integrated)
+- ✅ Define Definition of Done for end-to-end flow (detect -> respond -> verify -> report in iOS)
 
-### Step 0.3 - Set baseline architecture decisions
-- Record the frozen defaults in **`docs/phase0_baseline_decisions.md`**.
-- Realtime channel: SSE or WebSocket
-- Data stores: event/evidence/audit retention and backup strategy
-- Local process isolation model by criticality tier
-- iOS distribution strategy (App Store/TestFlight/MDM)
-- **OpenClaw on the control computer:** gateway layout, workspace layout, **`tools` allow/deny defaults** (see **`tools/openclaw/zeroth-guard-openclaw-tools.yaml`**), which **`skills/`** bundles are in scope for MVP, and how **`external/network-scan-agent`** + **`tools/network_pulse/`** are deployed on that host
+### Step 0.2 - Define interface contracts ✅
+- ✅ Publish schemas in **`schemas/`** and a short guide at **`docs/interface_contracts.md`**.
+- ✅ Publish common schemas for:
+  - ✅ agent findings
+  - ✅ incident objects
+  - ✅ action requests/results
+  - ✅ verification outcomes
+  - ✅ audit events
+- ✅ Include required correlation fields (`incident_id`, `asset_id`, `subnet_id`, `trace_id`)
+
+### Step 0.3 - Set baseline architecture decisions ✅
+- ✅ Record the frozen defaults in **`docs/phase0_baseline_decisions.md`**.
+- ✅ Realtime channel: SSE or WebSocket
+- ✅ Data stores: event/evidence/audit retention and backup strategy
+- ✅ Local process isolation model by criticality tier
+- ✅ iOS distribution strategy (App Store/TestFlight/MDM)
+- ✅ **OpenClaw on the control computer:** gateway layout, workspace layout, **`tools` allow/deny defaults** (see **`tools/openclaw/zeroth-guard-openclaw-tools.yaml`**), which **`skills/`** bundles are in scope for MVP, and how **`external/network-scan-agent`** + **`tools/network_pulse/`** are deployed on that host
 
 ---
 
