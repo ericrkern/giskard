@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zerothguard.local/schemas/finding.schema.json",
+  "title": "Zeroth Guard Agent Finding",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "type": { "type": "string", "const": "agent_finding" },
+
+    "incident_id": { "type": "string", "minLength": 1 },
+    "asset_id": { "type": "string", "minLength": 1 },
+    "subnet_id": { "type": "string", "minLength": 1 },
+    "trace_id": { "type": "string", "minLength": 1 },
+
+    "agent_id": { "type": "string", "minLength": 1 },
+    "observed_at": { "type": "string", "format": "date-time" },
+
+    "title": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"]
+    },
+
+    "attack_mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "framework": { "type": "string", "enum": ["mitre_attack"] },
+        "techniques": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+
+    "recommended_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action_type": {
+            "type": "string",
+            "enum": ["block_domain", "block_ip", "quarantine_device", "revoke_session", "force_mfa"]
+          },
+          "reason": { "type": "string", "minLength": 1 },
+          "parameters": { "type": "object" }
+        },
+        "required": ["action_type", "reason"]
+      }
+    },
+
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": { "type": "string", "minLength": 1 },
+          "ref": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "minLength": 1 }
+        },
+        "required": ["kind", "ref"]
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "type",
+    "incident_id",
+    "asset_id",
+    "subnet_id",
+    "trace_id",
+    "agent_id",
+    "observed_at",
+    "title",
+    "summary",
+    "confidence",
+    "risk_level",
+    "recommended_actions",
+    "evidence_refs"
+  ]
+}
+

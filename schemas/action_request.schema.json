@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zerothguard.local/schemas/action_request.schema.json",
+  "title": "Zeroth Guard Action Request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "type": { "type": "string", "const": "action_request" },
+
+    "incident_id": { "type": "string", "minLength": 1 },
+    "asset_id": { "type": "string", "minLength": 1 },
+    "subnet_id": { "type": "string", "minLength": 1 },
+    "trace_id": { "type": "string", "minLength": 1 },
+
+    "requested_at": { "type": "string", "format": "date-time" },
+    "requested_by": { "type": "string", "enum": ["policy", "operator", "mobile_app"] },
+
+    "action_type": {
+      "type": "string",
+      "enum": ["block_domain", "block_ip", "quarantine_device", "revoke_session", "force_mfa"]
+    },
+    "parameters": { "type": "object" },
+
+    "policy_rule_id": { "type": "string", "minLength": 1 },
+    "justification": { "type": "string", "minLength": 1 },
+
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "boolean" },
+        "approval_id": { "type": "string" }
+      },
+      "required": ["required"]
+    }
+  },
+  "required": [
+    "schema_version",
+    "type",
+    "incident_id",
+    "asset_id",
+    "subnet_id",
+    "trace_id",
+    "requested_at",
+    "requested_by",
+    "action_type",
+    "parameters",
+    "policy_rule_id",
+    "justification",
+    "approval"
+  ]
+}
+

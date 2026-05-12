@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zerothguard.local/schemas/verification.schema.json",
+  "title": "Zeroth Guard Verification Outcome",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "type": { "type": "string", "const": "verification" },
+
+    "incident_id": { "type": "string", "minLength": 1 },
+    "asset_id": { "type": "string", "minLength": 1 },
+    "subnet_id": { "type": "string", "minLength": 1 },
+    "trace_id": { "type": "string", "minLength": 1 },
+
+    "action_request_id": { "type": "string", "minLength": 1 },
+    "action_result_id": { "type": "string", "minLength": 1 },
+
+    "verified_at": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["verified", "partial", "failed"] },
+    "notes": { "type": "string" },
+
+    "evidence_refs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidence_ref" }
+    }
+  },
+  "$defs": {
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "ref": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "minLength": 1 }
+      },
+      "required": ["kind", "ref"]
+    }
+  },
+  "required": [
+    "schema_version",
+    "type",
+    "incident_id",
+    "asset_id",
+    "subnet_id",
+    "trace_id",
+    "action_request_id",
+    "action_result_id",
+    "verified_at",
+    "status",
+    "notes",
+    "evidence_refs"
+  ]
+}
+

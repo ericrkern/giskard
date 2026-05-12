@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zerothguard.local/schemas/audit_event.schema.json",
+  "title": "Zeroth Guard Audit Event",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "type": { "type": "string", "const": "audit_event" },
+
+    "incident_id": { "type": "string", "minLength": 1 },
+    "asset_id": { "type": "string", "minLength": 1 },
+    "subnet_id": { "type": "string", "minLength": 1 },
+    "trace_id": { "type": "string", "minLength": 1 },
+
+    "event_id": { "type": "string", "minLength": 1 },
+    "event_at": { "type": "string", "format": "date-time" },
+    "stage": {
+      "type": "string",
+      "enum": ["ingest", "detect", "correlate", "risk", "policy", "act", "verify", "report"]
+    },
+    "message": { "type": "string", "minLength": 1 },
+
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "finding_ref": { "type": "string" },
+        "action_request_id": { "type": "string" },
+        "action_result_id": { "type": "string" },
+        "verification_id": { "type": "string" }
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "type",
+    "incident_id",
+    "asset_id",
+    "subnet_id",
+    "trace_id",
+    "event_id",
+    "event_at",
+    "stage",
+    "message"
+  ]
+}
+

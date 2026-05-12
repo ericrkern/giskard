@@ -19,7 +19,7 @@
 
 - **Zeroth Guard**: the full defense platform.
 - **OpenClaw agent swarm**: specialized monitoring and decision agents running in parallel.
-- **Network scan agent (network pulse)**: a **swarm skill/tool**—not a parallel control plane. Domain agents invoke it on a schedule or when investigations need fresh topology and inventory; results normalize into events for the orchestrator. Implementation is pinned at `external/network-scan-agent` ([network-scan-agent](https://github.com/ericrkern/network-scan-agent)), with an OpenClaw-facing **executable wrapper** at `tools/network_pulse/` (manifest + `wrapper.py`) suitable for gated `exec` calls.
+- **Network scan agent (network pulse)**: a **swarm skill/tool**—not a parallel control plane. Domain agents invoke it on a schedule or when investigations need fresh topology and inventory; results normalize into events for the orchestrator. Implementation tracks **`network-scan-agent`** `main` as a Git submodule at `external/network-scan-agent` ([network-scan-agent](https://github.com/ericrkern/network-scan-agent)); refresh it with `git pull` inside that path and commit the updated submodule pointer in this repo. OpenClaw uses the **executable wrapper** at `tools/network_pulse/` (manifest + `wrapper.py`) for gated `exec` calls.
 - **Workspace skills (`skills/`)**: curated **AgentSkills**-style `SKILL.md` bundles that recommend optional [ClawHub](https://clawhub.ai/) capabilities (integrations, automation, IoT context, search, memory patterns). They provide prompts and install pointers only—upstream skill code is installed via `openclaw skills install` after operator review ([OpenClaw skills](https://docs.openclaw.ai/tools/skills)).
 - **Repository tools (`tools/`)**: (1) **wrappers** that run deterministic subprocesses (for example Network Pulse); (2) **`tools/openclaw/`** registry YAML listing OpenClaw **built-in and documented extension tools** for allowlisting—those tools ship with the OpenClaw gateway or plugins, not as code in this repo ([Tools and plugins](https://docs.openclaw.ai/tools)).
 - **Zeroth Guard Orchestrator**: the only component that correlates all agent findings and communicates with end users.
@@ -33,7 +33,7 @@ Related documents:
 - `docs/hardware.md`
 - `docs/ios-app-spec.md`
 - `docs/mvp.md`
-- Network Pulse / network scan agent deployment and data paths: `external/network-scan-agent/docs/configuration.md`
+- Network Pulse / network scan agent deployment and data paths: `external/network-scan-agent/docs/configuration.md`; periodic scan **cron** installer: `external/network-scan-agent/scripts/install-scan-cron.sh`
 - OpenClaw workspace skill recommendations: `skills/README.md` (per-skill `skills/*/SKILL.md`)
 - Executable wrappers + OpenClaw tool registry: `tools/README.md`, `tools/openclaw/README.md`, `tools/openclaw/zeroth-guard-openclaw-tools.yaml`
 - OpenClaw agent personas + swarm manifest: `agents/README.md`, `agents/SOUL.md`, `agents/AGENTS.md`, `agents/swarm-manifest.yaml`, `agents/roles/`
@@ -287,32 +287,36 @@ On-demand and scheduled **skills** compose investigations and responses. Swarm a
 
 ##### Network scan agent — reference implementation capabilities (`external/network-scan-agent`)
 
-These behaviors describe the **current Network Pulse codebase** so swarm integration can map outputs to normalized events (inventory changes, posture deltas, correlation signals). Scheduling, subnets, and ports are **configurable** in code; values below are the stock reference profile.
+These behaviors describe the **current `network-scan-agent` `main` tree** (submodule under `external/network-scan-agent`) so swarm integration can map outputs to normalized events (inventory changes, posture deltas, correlation signals). Subnets, cadence, and deep behavior are **configurable** via environment variables, systemd, or cron; values below reflect the stock upstream layout.
 
-**Discovery loop (pulse)**
-- **Cadence:** periodic runs via **systemd timer** or **cron** (deployment examples use **15-minute** intervals for pulse; alternate profiles may use hourly schedules).
-- **Scope:** multiple **RFC 1918 /24 subnets** in one run (reference list includes several `192.168.x.0/24` ranges—extend or narrow per site).
-- **Live host finding:** sweep addresses per subnet (e.g. ping-driven reachability) before finer probes.
-- **TCP service discovery:** probe a **common-services port set** (reference includes SSH, HTTP/S, SMB, IPP, alternative HTTP ports, VNC-class and dev ports such as **22, 80, 443, 445, 631, 8080, 5900, 3000, 5000**).
+**Discovery loop (pulse) — `network_scan_agent.py`**
+- **Cadence:** either a **systemd user timer** (see `external/network-scan-agent/docs/configuration.md`) **or** the upstream **`scripts/install-scan-cron.sh`**, which installs a **user crontab**: quick pulse **every 15 minutes** (`scripts/cron-quick-scan.sh`) and **`deep_scan.py` hourly at minute :10** (`scripts/cron-deep-scan.sh`), writing **`logs/cron-quick.log`** and **`logs/cron-deep.log`**. That installer **disables `network-scan-agent.timer`** when enabled so the same host does not run duplicate schedulers.
+- **Scope / subnets:** set **`NETWORK_SCAN_AGENT_NETWORKS`** to a comma-separated CIDR list. If unset, `network_scan_agent.py` defaults to **`192.168.0.0/24`**, **`192.168.1.0/24`**, and **`192.168.100.0/24`**; **`scripts/cron-quick-scan.sh`** also includes **`192.168.2.0/24`** in its default export unless you override the variable.
+- **LIGHTWEIGHT scheduled pulses:** `cron-quick-scan.sh` sets **`NETWORK_SCAN_AGENT_SKIP_DEEP=1`** so routine pulse runs **skip inline deep-scan triggers** (deep still runs on the hourly cron path or on demand via **`tools/network_pulse/wrapper.py --mode deep`**).
+- **Live host finding:** **ICMP ping** (configurable timeout) plus **TCP SYN subnet discovery** via **`nmap`** on the configured networks.
+- **TCP service discovery (pulse):** **22, 80, 443, 445, 631, 8080, 5900, 3000, 5000**.
 - **Enrichment:** resolve **hostnames** and **MAC addresses** where available; apply **heuristic device typing** (for example printer vs router vs phone-class endpoints).
-- **Dedup and drift:** maintain a **seen-device cache** (`.seen_devices.json`) so only genuinely **new** hosts raise prominent alerts; append **scan history** statistics (new vs online vs total known).
+- **Dedup and drift:** **`.seen_devices.json`** backs deduplication and “new device” emphasis; **`devices.md`** carries rolling inventory and **scan history** (new vs online vs total known); **`.scan_snapshots.json`** records time-series online snapshots.
 
 **Structured artifacts for downstream agents**
-- **`devices.md`:** human-readable rolling inventory, **new-device alert** sections with timestamps, optional consolidated sections (for example **iPhone identity correlation** comparing reference vs routed-subnet candidate IPs using MAC/hostname evidence logged to `.iphone_identity_checks.json`).
+- **`devices.md`:** human-readable inventory, **new-device alert** sections with timestamps, optional **iPhone identity correlation** (reference vs candidate IPs, MAC/hostname evidence in **`.iphone_identity_checks.json`**).
 - **`.scan_snapshots.json`:** time-series **online-device snapshots** per scan for baseline and drift analysis.
-- **`deep_scan_results.json`:** latest **deep inspection** payload consumed by tooling that needs port/service detail.
+- **`deep_scan_results.json`:** latest **deep inspection** payload for dashboards and agents that need port/service detail.
+- **`logs/`** (typical when using **`scripts/install-scan-cron.sh`**): **`cron-quick.log`**, **`cron-deep.log`**. Other installs may use root-level **`scan_cron.log`** / **`deep_scan_cron.log`** as in `external/network-scan-agent/docs/configuration.md`.
 
-**Optional deep inspection (`deep_scan.py`)**
-- Multi-stage **nmap** workflow per host: host discovery gate; **fast TCP discovery** (e.g. top ports); **full TCP** on responsive hosts; **UDP** probes against a **common UDP service list**; **service/version and safe script** fingerprinting (e.g. banners, HTTP title, TLS cert, SSH algorithms, SMB OS hints); **optional OS detection** when executed with sufficient privileges.
-- Intended for **on-demand or scheduled depth**, not every pulse tick—agents should invoke under policy to manage runtime and network noise.
+**Optional deep inspection — `deep_scan.py`**
+- Builds the target host list from **`.seen_devices.json`** and **`devices.md`** (IPs validated to avoid network / broadcast addresses).
+- Multi-stage **nmap** workflow: **fast TCP discovery**; **full TCP** on responsive hosts; **UDP** probes against **`COMMON_UDP_PORTS`** in source; **service/version and safe script** fingerprinting; **optional OS detection** when executed with sufficient privileges.
+- **`COMMON_TCP_PORTS`** in `deep_scan.py` extends the pulse set with additional ports (for example **53, 135, 139, 1883, 8060, 18789** alongside the shared small-service ports)—treat the file as authoritative when mapping coverage.
+- Intended for **on-demand or scheduled depth**, not every pulse tick—invoke under policy to manage runtime and network noise.
 
 **Network Pulse dashboard (operator tooling, optional)**
-- **Flask** web UI (typical **port 5000**) over the same inventory files: live **online/offline/unknown** status, search/filter, **manual scan trigger**, auto-refresh.
-- Companion **HTTP APIs** (for example device summaries plus optional **audit**, **Wi‑Fi SSID visibility**, and **packet/trace summaries**) backed by **sudo-scoped helper scripts** where deployments enable `auditd`, wireless scans, or controlled captures—see `external/network-scan-agent/docs/configuration.md`.
+- **Flask** app **`dashboard/app.py`** (typical **port 5000**) over the same inventory files: live **online/offline/unknown** status, search/filter, **manual scan trigger** (`POST /api/scan`), auto-refresh.
+- **HTTP APIs** include **`/api/devices`**, **`/api/device/<ip>`**, **`GET`/`PUT /api/device-groups`**, **`/api/audit`**, **`/api/wifi/ssids`**, **`/api/trace`**, and scan snapshot helpers—backed by **sudo-scoped helper scripts** under `dashboard/bin/` when deployments enable `auditd`, wireless scans, or controlled captures (see `external/network-scan-agent/docs/configuration.md`).
 - This dashboard is **internal/operator** convenience; it does **not** replace **Zeroth Guard Mobile** as the customer-facing plane.
 
 **Runtime dependencies (reference)**
-- **Python 3**, **`nmap`** for discovery and deep scans; deployment docs also reference helpers such as **tcpdump** / **tshark**, **netcat**, and **auditd** when dashboard audit/trace features are enabled.
+- **Python 3**, **`nmap`** for discovery and deep scans; `docs/configuration.md` also references **tcpdump** / **tshark**, **netcat-openbsd**, and **auditd** when dashboard audit/trace features are enabled.
 
 ##### OpenClaw workspace skills (`skills/`)
 

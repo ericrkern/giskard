@@ -8,6 +8,11 @@ Wraps the **[network-scan-agent](https://github.com/ericrkern/network-scan-agent
 - **Entrypoint:** `wrapper.py` — runs the upstream scanner with a configurable workspace root and returns JSON on stdout
 - **Upstream scripts:** `network_scan_agent.py` (pulse), `deep_scan.py` (deep inspection pass)
 
+Upstream behavior matches the submodule at `external/network-scan-agent` (see `docs/architecture.md` §Network scan agent). Notable **environment variables** read by `network_scan_agent.py` when you run pulse directly (the wrapper does not set these unless your shell exports them):
+
+- **`NETWORK_SCAN_AGENT_NETWORKS`** — comma-separated CIDRs to scan (defaults are defined in `network_scan_agent.py` and in `scripts/cron-quick-scan.sh`).
+- **`NETWORK_SCAN_AGENT_SKIP_DEEP`** — when truthy, pulse skips inline deep-scan triggers (the stock quick-cron wrapper sets this for lightweight 15-minute runs).
+
 ## Usage
 
 From the Zeroth Guard repo root:

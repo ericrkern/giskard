@@ -2,7 +2,7 @@
 
 **Zeroth Guard** is an autonomous, policy-driven security platform for **home and small-office networks**: a multi-agent swarm under local orchestration, **guarded automatic response**, and **Zeroth Guard Mobile** (iPhone) for alerts, audit-friendly visibility, and sensitive confirmations.
 
-The name cites Asimov’s **Zeroth Law** framing (*humanity-scale harm avoidance precedes narrower robot directives*) as a narrative fit for **policy-bound autonomy**—not as a claim on unrelated trademarks or other commercial “Giskard” brands. See **`docs/zerothguard.md`** for literary background.
+The name cites Asimov’s **Zeroth Law** framing (*humanity-scale harm avoidance precedes narrower robot directives*) as a narrative fit for **policy-bound autonomy**—not as a claim on unrelated third-party trademarks or confusingly similar product names. See **`docs/zerothguard.md`** for literary background.
 
 Operating philosophy:
 
@@ -26,6 +26,12 @@ If you already cloned without submodules:
 
 ```bash
 git submodule update --init --recursive
+```
+
+If recursive init fails (for example an unset nested submodule URL inside `network-scan-agent`), initialize Network Pulse only:
+
+```bash
+git submodule update --init external/network-scan-agent
 ```
 
 To move the submodule to a newer commit on `network-scan-agent`, check out the desired revision inside `external/network-scan-agent`, then commit the submodule pointer update in this repo.
