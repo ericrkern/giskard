@@ -18,7 +18,7 @@ These laws appear throughout Asimov’s short stories and novels—not as engine
 
 ## The Zeroth Law
 
-Later in the unified *Robot*–*Foundation* timeline, the robots **R. Daneel Olivaw** and **R. Giskard Reventlov** articulate a **higher**, more abstract imperative sometimes called the **Zeroth Law**:
+Later in the unified *Robot*–*Foundation* timeline, advanced positronic robots—notably **R. Daneel Olivaw** in continuity with *Robots and Empire*—articulate a **higher**, more abstract imperative sometimes called the **Zeroth Law**:
 
 > **A robot may not harm *humanity*, or, by inaction, allow *humanity* to come to harm.**
 
@@ -45,13 +45,13 @@ So the name is an **homage** to Asimov’s Zeroth Law theme: **protect the whole
 
 ## Related reading (fiction)
 
-- *Robots and Empire* — pivotal role for **R. Giskard Reventlov** and the emergence of the Zeroth Law framing.  
+- *Robots and Empire* — pivotal for the emergence of the Zeroth Law framing in the Robot–*Foundation* continuity.  
 - Broader *Foundation*–era novels where Daneel’s long arc connects Robot-era choices to later history.
 
 ---
 
 ## Relation to this repository
 
-The product identity is **Zeroth Guard** only. Other businesses or OSS projects may use similar names (“Giskard,” etc.); they are **unrelated** unless explicitly integrated.
+The product identity is **Zeroth Guard** only. Other businesses or OSS projects may use similar-sounding names; they are **unrelated** unless explicitly integrated.
 
 For architecture and agents, see `docs/architecture.md` and `docs/agents.md`.
